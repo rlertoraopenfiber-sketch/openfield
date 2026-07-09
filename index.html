@@ -145,7 +145,13 @@ button{cursor:pointer}
       </div>
       <div id="userAvatar" style="width:44px;height:44px;border-radius:50%;background:var(--acl);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--act);margin-top:4px">OP</div>
     </div>
-    <p class="mono" style="font-size:12px;color:var(--txm);margin-top:6px;margin-bottom:26px" id="dateStr"></p>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:6px;margin-bottom:26px">
+      <p class="mono" style="font-size:12px;color:var(--txm)" id="dateStr"></p>
+      <button onclick="reloadCasi()" style="background:var(--sub);border:none;border-radius:8px;padding:5px 12px;font-size:11px;color:var(--tx2);display:flex;align-items:center;gap:4px;margin-left:auto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:13px;height:13px"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Aggiorna dati
+      </button>
+    </div>
   </div>
   <div style="position:relative;margin:0 24px 22px">
     <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -882,6 +888,56 @@ document.getElementById('homeSearch').addEventListener('input',function(){
 document.getElementById('listSearch').addEventListener('input',renderList);
 
 /* ══ Sorgente casi ══════════════════════════════════════════ */
+async function reloadCasi(){
+  if(!confirm('Aggiorna la lista casi dal server?\n\nLe foto e note già salvate vengono mantenute.'))return;
+  busy(true,'Aggiornamento dati\u2026');
+  try{
+    const existing=await dbGetAll('cases');
+    const modified={};
+    for(const c of existing){
+      if(c.photos?.length||c.note||c.status==='Inviato'){
+        modified[c.olo]={photos:c.photos,note:c.note,geo:c.geo,status:c.status,
+          user:c.user,matricola:c.matricola,lastModified:c.lastModified,sentAt:c.sentAt};
+      }
+    }
+    const t=db.transaction('cases','readwrite');
+    t.objectStore('cases').clear();
+    await new Promise((res,rej)=>{t.oncomplete=res;t.onerror=rej});
+
+    const CAT_MAP={'B':'Blocco tecnico','S':'Sopralluogo','P':'Preventivo','C':'Consuntivo'};
+    let remote=null;
+    const r=await fetch('casi.json',{cache:'no-store'});
+    if(r.ok){const j=await r.json();if(Array.isArray(j))remote=j}
+    if(!remote?.length){busy(false);toast('Nessun dato trovato sul server','err');return}
+
+    let count=0;
+    for(const c of remote){
+      const olo=c.o||c.olo;
+      if(!olo)continue;
+      const prev=modified[olo]||{};
+      await dbPut('cases',{
+        olo, categoria:CAT_MAP[c.c]||c.categoria||'Blocco tecnico',
+        indirizzo:c.a||c.indirizzo||'', civico:c.n||c.civico||'',
+        comune:c.m||c.comune||'', provincia:c.p||c.provincia||'',
+        regione:c.r||c.regione||'', impresa:c.i||c.impresa||'',
+        gg_giac:c.g||0,
+        date:new Date().toLocaleDateString('it-IT'),
+        status:prev.status||'Bozza', note:prev.note||'', photos:prev.photos||[], geo:prev.geo||null,
+        lastModified:prev.lastModified||new Date().toISOString(),
+        user:prev.user||currentUser?.fullName||'', matricola:prev.matricola||currentUser?.matricola||'',
+        sentAt:prev.sentAt||''
+      });
+      count++;
+    }
+    busy(false);
+    toast(`${count.toLocaleString()} casi aggiornati`,'ok',3000);
+    refreshHome();
+  }catch(err){
+    busy(false);
+    toast('Aggiornamento fallito: '+err.message,'err',6000);
+  }
+}
+
 async function seedCases(){
   if((await dbGetAll('cases')).length)return;
   const CAT_MAP={'B':'Blocco tecnico','S':'Sopralluogo','P':'Preventivo','C':'Consuntivo'};
