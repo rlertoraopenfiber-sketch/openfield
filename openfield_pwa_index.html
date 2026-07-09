@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#F7F6F3" id="tc">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>OpenField</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#F7F6F3;--card:#FFF;--sub:#EFEEE9;--sub2:#F3F2ED;
+--tx:#18201C;--tx2:#5B6560;--txm:#9BA6A0;
+--bd:rgba(24,32,28,.07);--bds:rgba(24,32,28,.12);
+--ac:#0A7B5C;--acl:#D6F0E6;--act:#065E46;
+--r:#B91C2C;--rl:#FDE8EB;--rt:#881325;
+--a:#92630B;--al:#FEF3D6;--at:#6D4A08;
+--b:#1258A0;--bl:#E0EEFB;--bt:#0B4078;
+--g:#357711;--gl:#E5F3D9;--gt:#254F0A;
+--nb:rgba(247,246,243,.96);
+--serif:'DM Serif Display',Georgia,serif;
+--sans:'Inter',system-ui,sans-serif;
+--mono:'JetBrains Mono',monospace;
+}
+.dark{
+--bg:#0C1014;--card:#141A20;--sub:#1A2128;--sub2:#1E252D;
+--tx:#E2DED4;--tx2:#8894A0;--txm:#4A5662;
+--bd:rgba(226,222,212,.06);--bds:rgba(226,222,212,.10);
+--ac:#4ECBA0;--acl:#0E2A20;--act:#8EDFBE;
+--r:#F28B8B;--rl:#2A1014;--rt:#F5B8B8;
+--a:#E8A830;--al:#2A2010;--at:#F4CC7A;
+--b:#6AADE8;--bl:#0C1E30;--bt:#A8D0F4;
+--g:#8AC454;--gl:#142410;--gt:#B8DC97;
+--nb:rgba(12,16,20,.96);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);overflow:hidden;height:100dvh;display:flex;flex-direction:column;transition:background .3s,color .3s}
+input,textarea,select,button{font-family:inherit;font-size:inherit}
+.screen{display:none;flex:1;flex-direction:column;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+.screen.active{display:flex}
+.bar{display:flex;justify-content:space-between;align-items:center;padding:env(safe-area-inset-top,8px) 20px 0;font-size:12px;color:var(--txm);min-height:44px}
+.bar button{background:var(--sub);border:none;border-radius:20px;padding:5px 12px;font-size:11px;color:var(--tx2);cursor:pointer;display:flex;align-items:center;gap:5px;font-family:var(--sans)}
+.nav{display:flex;justify-content:space-around;padding:6px 8px calc(env(safe-area-inset-bottom,8px) + 10px);background:var(--nb);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:.5px solid var(--bd)}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--txm);background:none;border:none;cursor:pointer;padding:6px 16px;font-family:var(--sans);transition:color .15s}
+.nav button.ac{color:var(--ac);font-weight:500}
+.nav button.ac::after{content:'';width:4px;height:4px;border-radius:50%;background:var(--ac);margin-top:1px}
+.nav svg{width:22px;height:22px;stroke-width:1.6}
+.nav button.ac svg{stroke-width:2.2}
+.ch{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--txm);font-family:var(--mono)}
+.serif{font-family:var(--serif);color:var(--tx)}
+.mono{font-family:var(--mono);color:var(--tx2);letter-spacing:.3px}
+.pill{font-size:10px;font-weight:500;padding:3px 10px;border-radius:6px;white-space:nowrap;font-family:var(--sans)}
+.card{background:var(--card);border-radius:18px;border:.5px solid var(--bd);transition:border-color .15s}
+.card:active{border-color:var(--bds)}
+.input{width:100%;padding:14px 18px;border-radius:16px;border:.5px solid var(--bd);background:var(--sub2);font-size:14px;color:var(--tx);outline:none;transition:border-color .15s}
+.input:focus{border-color:var(--ac)}
+.input-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--txm)}
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:15px;border-radius:14px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:opacity .15s;font-family:var(--sans)}
+.btn:active{opacity:.85}
+.btn-primary{background:var(--tx);color:var(--bg)}
+.btn-accent{background:var(--ac);color:#fff}
+.btn-ghost{background:transparent;color:var(--tx2)}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:7px 14px;border-radius:22px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.chip-on{background:var(--acl);color:var(--act)}
+.chip-off{background:var(--sub);color:var(--tx2)}
+.photo-grid{display:flex;gap:8px;flex-wrap:wrap;padding:0 24px}
+.photo-thumb{width:62px;height:62px;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:var(--bl)}
+.photo-thumb img{width:100%;height:100%;object-fit:cover}
+.photo-thumb .geo-dot{position:absolute;bottom:3px;right:3px;width:14px;height:14px;border-radius:50%;background:var(--gl);display:flex;align-items:center;justify-content:center}
+.photo-thumb .geo-dot svg{width:8px;height:8px;color:var(--gt)}
+.photo-add{border:1.5px dashed var(--bds);background:transparent;cursor:pointer}
+.toggle-bar{display:flex;gap:0;padding:3px;border-radius:14px;background:var(--sub)}
+.toggle-bar button{flex:1;padding:12px;border-radius:12px;font-size:13px;font-weight:500;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;font-family:var(--sans)}
+.toggle-bar .sel{background:var(--card);color:var(--tx)}
+.toggle-bar .unsel{background:transparent;color:var(--txm)}
+.back-btn{background:none;border:none;cursor:pointer;color:var(--tx2);display:flex;padding:0}
+.row-item{display:block;width:100%;padding:16px 0;border-top:.5px solid var(--bd);cursor:pointer;text-align:left;background:none;border-left:none;border-right:none;border-bottom:none}
+.row-item:first-child{border-top:none}
+.stat{flex:1;text-align:center;padding:14px 0}
+.stat+.stat{border-left:.5px solid var(--bd)}
+.progress{height:4px;border-radius:2px;background:var(--sub);overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;transition:width .4s}
+.tree-line{display:flex;align-items:center;gap:8px;padding:6px 0;font-family:var(--mono);font-size:12px}
+.fade-in{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <span style="font-weight:500">9:41</span>
+  <div style="display:flex;align-items:center;gap:10">
+    <button onclick="toggleTheme()" id="themeBtn">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:14px;height:14px"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+      <span id="themeLbl">Dark</span>
+    </button>
+  </div>
+</div>
+
+<!-- ═══ LOGIN ═══ -->
+<div class="screen active" id="s-login">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 28px">
+    <div style="text-align:center;margin-bottom:40px">
+      <div style="width:72px;height:72px;border-radius:20px;background:var(--acl);display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--act)" style="width:32px;height:32px;stroke-width:1.6"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <p class="serif" style="font-size:30px;margin-bottom:6px">OpenField</p>
+      <p style="font-size:13px;color:var(--txm)">Gestione attivit&agrave; sul campo</p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txm);font-family:var(--mono);display:block;margin-bottom:6px">Nome</label>
+        <input class="input" id="regNome" placeholder="Riccardo">
+      </div>
+      <div>
+        <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txm);font-family:var(--mono);display:block;margin-bottom:6px">Cognome</label>
+        <input class="input" id="regCognome" placeholder="Lertora">
+      </div>
+      <div>
+        <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txm);font-family:var(--mono);display:block;margin-bottom:6px">Area</label>
+        <select class="input" id="regArea" style="appearance:auto">
+          <option>Nord Ovest</option><option>Nord Est</option><option>Centro</option><option>Sud</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txm);font-family:var(--mono);display:block;margin-bottom:6px">Matricola</label>
+        <input class="input" id="regMatricola" placeholder="A760104">
+      </div>
+    </div>
+
+    <button class="btn btn-accent" style="width:100%;margin-top:24px" onclick="register()">
+      Accedi
+    </button>
+    <p style="font-size:11px;color:var(--txm);text-align:center;margin-top:14px;line-height:1.5">I dati restano sul dispositivo.<br>L'admin ti abiliter&agrave; da ALADIN.</p>
+  </div>
+</div>
+
+<!-- ═══ HOME ═══ -->
+<div class="screen" id="s-home">
+  <div style="padding:30px 24px 0">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <p style="font-size:13px;color:var(--txm);letter-spacing:.4px" id="greeting">Buongiorno</p>
+        <p class="serif" style="font-size:28px;line-height:1.2" id="userName">Operatore</p>
+      </div>
+      <div id="userAvatar" style="width:44px;height:44px;border-radius:50%;background:var(--acl);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:var(--act);margin-top:4px">OP</div>
+    </div>
+    <p class="mono" style="font-size:12px;color:var(--txm);margin-top:6px;margin-bottom:28px" id="dateStr"></p>
+  </div>
+
+  <div style="position:relative;margin:0 24px 24px">
+    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="input" style="padding-left:46px" placeholder="Codice OLO, indirizzo, comune..." id="homeSearch" oninput="globalSearch(this.value)">
+  </div>
+
+  <p class="ch" style="padding:0 24px;margin-bottom:14px">Tipologia attività</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 24px" id="catGrid"></div>
+
+  <div style="display:flex;align-items:center;margin:22px 24px 0;padding:16px 0;border-top:.5px solid var(--bd);border-bottom:.5px solid var(--bd)">
+    <div class="stat"><div class="serif" style="font-size:22px" id="statTotal">0</div><div style="font-size:11px;color:var(--txm);margin-top:3px">Casi assegnati</div></div>
+    <div class="stat"><div class="serif" style="font-size:22px" id="statDraft">0</div><div style="font-size:11px;color:var(--txm);margin-top:3px">Bozze</div></div>
+    <div class="stat"><div class="serif" style="font-size:22px" id="statSent">0</div><div style="font-size:11px;color:var(--txm);margin-top:3px">Inviati</div></div>
+  </div>
+</div>
+
+<!-- ═══ LIST ═══ -->
+<div class="screen" id="s-list">
+  <div style="display:flex;align-items:center;gap:12px;padding:18px 24px 0">
+    <button class="back-btn" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:20px;height:20px"><path d="m15 18-6-6 6-6"/></svg></button>
+    <span class="serif" style="font-size:20px" id="listTitle">Casi</span>
+    <div style="margin-left:auto" id="listBadge"></div>
+  </div>
+  <div style="position:relative;margin:18px 24px 0">
+    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="input" style="padding-left:46px" placeholder="Cerca..." id="listSearch" oninput="filterList()">
+  </div>
+  <div style="display:flex;gap:6px;padding:14px 24px 0;flex-wrap:wrap" id="filterChips"></div>
+  <div style="display:flex;justify-content:space-between;padding:20px 24px 8px">
+    <span class="ch" id="listCount">0 risultati</span>
+    <span style="font-size:12px;color:var(--tx2);cursor:pointer">Data ↓</span>
+  </div>
+  <div style="padding:0 24px;flex:1" id="listItems"></div>
+</div>
+
+<!-- ═══ DETAIL ═══ -->
+<div class="screen" id="s-detail">
+  <div style="display:flex;align-items:center;gap:10px;padding:18px 24px 0">
+    <button class="back-btn" onclick="go('list')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:20px;height:20px"><path d="m15 18-6-6 6-6"/></svg></button>
+    <span class="mono" style="font-size:14px;font-weight:500;color:var(--tx)" id="detailOlo"></span>
+  </div>
+
+  <div class="card" style="margin:18px 24px 0;padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span id="detailCatBadge"></span>
+      <span class="mono" style="font-size:11px;color:var(--txm)" id="detailDate"></span>
+    </div>
+    <p class="serif" style="font-size:17px;margin-bottom:4px" id="detailAddr"></p>
+    <p style="font-size:12px;color:var(--txm);margin-bottom:14px" id="detailLoc"></p>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--sub);border-radius:12px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--bt)" style="width:15px;height:15px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span class="mono" style="font-size:11px;flex:1" id="detailGeo">—</span>
+      <span style="font-size:11px;color:var(--bt);font-weight:500;cursor:pointer" onclick="getGeo()">Rileva GPS</span>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;padding:20px 24px 10px">
+    <span class="ch">Foto georeferenziate</span>
+    <span class="mono" style="font-size:11px;color:var(--txm)"><span id="photoCount">0</span> / ∞</span>
+  </div>
+  <div class="photo-grid" id="photoGrid">
+    <div class="photo-thumb photo-add" onclick="takePhoto()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--txm)" style="width:20px;height:20px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    </div>
+  </div>
+  <input type="file" accept="image/*" capture="environment" id="cameraInput" style="display:none" onchange="onPhoto(this)">
+
+  <div style="padding:20px 24px 0"><span class="ch">Note</span></div>
+  <div style="padding:10px 24px 0">
+    <textarea class="input" id="detailNote" rows="3" placeholder="Descrivi l'attività, problemi riscontrati..." style="resize:vertical;min-height:72px;line-height:1.5"></textarea>
+    <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--txm)"><span id="noteTime">—</span><span id="noteChars">0 car.</span></div>
+  </div>
+
+  <div style="padding:18px 24px 0">
+    <div class="toggle-bar">
+      <button class="sel" id="togDraft" onclick="setDraftMode(true)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/></svg>
+        Salva bozza
+      </button>
+      <button class="unsel" id="togSend" onclick="setDraftMode(false)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:14px;height:14px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+        Invia completo
+      </button>
+    </div>
+  </div>
+
+  <div style="padding:16px 24px 0">
+    <button class="btn btn-primary" style="width:100%" onclick="submitCase()" id="submitBtn">Salva bozza</button>
+  </div>
+</div>
+
+<!-- ═══ DRAFTS ═══ -->
+<div class="screen" id="s-drafts">
+  <div style="display:flex;align-items:center;gap:12px;padding:18px 24px 0">
+    <button class="back-btn" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:20px;height:20px"><path d="m15 18-6-6 6-6"/></svg></button>
+    <span class="serif" style="font-size:20px">Le mie bozze</span>
+  </div>
+  <p style="font-size:13px;color:var(--tx2);padding:8px 24px 0;line-height:1.5">Inizia sul campo, completa in ufficio</p>
+  <div style="padding:18px 24px 0;flex:1;display:flex;flex-direction:column;gap:10px" id="draftList"></div>
+</div>
+
+<!-- ═══ CONFIRM ═══ -->
+<div class="screen" id="s-confirm">
+  <div style="text-align:center;padding:40px 24px 24px">
+    <div id="confirmIcon" style="width:68px;height:68px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px"></div>
+    <p class="serif" style="font-size:26px" id="confirmTitle"></p>
+    <p style="font-size:13px;color:var(--txm);margin-top:4px" id="confirmSub"></p>
+  </div>
+  <div class="card" style="margin:0 24px 10px;padding:18px 20px" id="confirmSummary"></div>
+  <div id="confirmFolder" style="margin:0 24px 10px"></div>
+  <div id="confirmSync" style="margin:0 24px"></div>
+  <div style="padding:20px 24px 0;margin-top:auto">
+    <button class="btn btn-primary" style="width:100%" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuova attività
+    </button>
+    <button class="btn btn-ghost" style="width:100%;margin-top:6px" onclick="go('drafts')">Vai alle bozze</button>
+  </div>
+</div>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav" id="mainNav">
+  <button class="ac" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</button>
+  <button onclick="go('list')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Attività</button>
+  <button onclick="go('drafts')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Bozze</button>
+  <button onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profilo</button>
+</nav>
+
+<script>
+const DB_NAME='openfield';const DB_VER=1;
+let db,currentUser=null,currentCat='',currentOlo=null,isDraft=true,photos=[],geoCoords=null;
+
+const CATS=[
+  {id:'blocco',name:'Blocco tecnico',icon:'⚠',sub:'Impedimenti e criticità',bgVar:'--rl',fgVar:'--rt'},
+  {id:'sopralluogo',name:'Sopralluogo',icon:'📍',sub:'Rilievo tecnico sito',bgVar:'--bl',fgVar:'--bt'},
+  {id:'preventivo',name:'Preventivo',icon:'📄',sub:'Stima costi intervento',bgVar:'--al',fgVar:'--at'},
+  {id:'consuntivo',name:'Consuntivo',icon:'✓',sub:'Chiusura e rendiconto',bgVar:'--gl',fgVar:'--gt'},
+];
+
+function initDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,DB_VER);r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('cases'))d.createObjectStore('cases',{keyPath:'olo'});if(!d.objectStoreNames.contains('config'))d.createObjectStore('config',{keyPath:'key'})};r.onsuccess=e=>{db=e.target.result;res()};r.onerror=e=>rej(e)})}
+
+function dbPut(store,data){return new Promise((res,rej)=>{const t=db.transaction(store,'readwrite');t.objectStore(store).put(data);t.oncomplete=()=>res();t.onerror=e=>rej(e)})}
+function dbGetAll(store){return new Promise((res,rej)=>{const t=db.transaction(store,'readonly');const r=t.objectStore(store).getAll();r.onsuccess=()=>res(r.result);r.onerror=e=>rej(e)})}
+function dbGet(store,key){return new Promise((res,rej)=>{const t=db.transaction(store,'readonly');const r=t.objectStore(store).get(key);r.onsuccess=()=>res(r.result);r.onerror=e=>rej(e)})}
+
+function toggleTheme(){
+  document.body.classList.toggle('dark');
+  const dark=document.body.classList.contains('dark');
+  document.getElementById('themeIcon').innerHTML=dark?'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>':'<path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/>';
+  document.getElementById('themeLbl').textContent=dark?'Light':'Dark';
+  document.getElementById('tc').content=dark?'#0C1014':'#F7F6F3';
+}
+
+function go(screen){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-'+screen).classList.add('active');
+  document.getElementById('s-'+screen).scrollTop=0;
+  const isLogin=screen==='login';
+  document.getElementById('mainNav').style.display=isLogin?'none':'flex';
+  document.querySelector('.bar').style.display=isLogin?'none':'flex';
+  if(!isLogin){
+    document.querySelectorAll('#mainNav button').forEach((b,i)=>{
+      const map=['home','list','drafts','profile'];
+      b.className=map[i]===screen?'ac':'';
+    });
+  }
+  if(screen==='home')refreshHome();
+  if(screen==='drafts')refreshDrafts();
+  if(screen==='list')renderList();
+}
+
+async function register(){
+  const nome=document.getElementById('regNome').value.trim();
+  const cognome=document.getElementById('regCognome').value.trim();
+  const area=document.getElementById('regArea').value;
+  const matricola=document.getElementById('regMatricola').value.trim();
+  if(!nome||!cognome){alert('Nome e cognome obbligatori');return}
+  currentUser={nome,cognome,area,matricola,fullName:`${nome} ${cognome}`,initials:`${nome[0]}${cognome[0]}`.toUpperCase(),created:new Date().toISOString()};
+  await dbPut('config',{key:'user',value:currentUser});
+  applyUser();
+  go('home');
+}
+
+function applyUser(){
+  if(!currentUser)return;
+  document.getElementById('userName').textContent=currentUser.fullName;
+  document.getElementById('userAvatar').textContent=currentUser.initials;
+}
+
+function pill(text,bgVar,fgVar){return`<span class="pill" style="background:var(${bgVar});color:var(${fgVar})">${text}</span>`}
+
+async function refreshHome(){
+  const cases=await dbGetAll('cases');
+  const h=new Date().getHours();
+  document.getElementById('greeting').textContent=h<12?'Buongiorno':h<18?'Buon pomeriggio':'Buonasera';
+  const d=new Date();
+  const days=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+  const months=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+  document.getElementById('dateStr').textContent=`${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+
+  const total=cases.length;
+  const drafts=cases.filter(c=>c.status==='Bozza').length;
+  const sent=cases.filter(c=>c.status==='Inviato').length;
+  document.getElementById('statTotal').textContent=total;
+  document.getElementById('statDraft').textContent=drafts;
+  document.getElementById('statSent').textContent=sent;
+
+  const grid=document.getElementById('catGrid');
+  grid.innerHTML='';
+  CATS.forEach(cat=>{
+    const count=cases.filter(c=>c.categoria===cat.name).length;
+    grid.innerHTML+=`<button class="card" style="padding:22px 18px 18px;text-align:left;cursor:pointer;border:none" onclick="openCat('${cat.id}')">
+      <div style="width:42px;height:42px;border-radius:12px;background:var(${cat.bgVar});display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px">${cat.icon}</div>
+      <div style="font-size:14px;font-weight:500;color:var(--tx);line-height:1.2;margin-bottom:4px">${cat.name}</div>
+      <div style="font-size:12px;color:var(--txm);line-height:1.35;margin-bottom:10px">${cat.sub}</div>
+      <div style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--tx2)"><span style="width:5px;height:5px;border-radius:50%;background:var(${cat.fgVar});display:inline-block"></span>${count}</div>
+    </button>`;
+  });
+}
+
+function openCat(catId){
+  const cat=CATS.find(c=>c.id===catId);
+  currentCat=cat.name;
+  document.getElementById('listTitle').textContent=cat.name;
+  document.getElementById('listBadge').innerHTML=pill(cat.name,cat.bgVar,cat.fgVar);
+  go('list');
+}
+
+async function renderList(){
+  const cases=await dbGetAll('cases');
+  let filtered=currentCat?cases.filter(c=>c.categoria===currentCat):cases;
+  const q=document.getElementById('listSearch').value.toLowerCase();
+  if(q)filtered=filtered.filter(c=>c.olo.toLowerCase().includes(q)||c.indirizzo.toLowerCase().includes(q)||c.comune.toLowerCase().includes(q));
+  filtered.sort((a,b)=>(b.lastModified||'').localeCompare(a.lastModified||''));
+  document.getElementById('listCount').textContent=`${filtered.length} risultati`;
+  const el=document.getElementById('listItems');
+  el.innerHTML='';
+  if(!filtered.length){el.innerHTML='<p style="color:var(--txm);font-size:13px;padding:20px 0;text-align:center">Nessun caso trovato</p>';return}
+  filtered.forEach(c=>{
+    const stColor=c.status==='Inviato'?['--gl','--gt']:['--al','--at'];
+    const pct=c.status==='Inviato'?100:Math.min(90,((c.photos?.length||0)*15+(c.note?30:0)+(c.geo?20:0)));
+    el.innerHTML+=`<button class="row-item" onclick="openDetail('${c.olo}')">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span class="mono" style="font-size:13px;font-weight:500;color:var(--tx)">${c.olo}</span>
+        ${pill(c.status,stColor[0],stColor[1])}
+      </div>
+      <div style="font-size:13px;color:var(--tx2);margin-bottom:8px;line-height:1.4">${c.indirizzo}, ${c.comune}</div>
+      ${c.status==='Bozza'?`<div class="progress" style="margin-bottom:8px"><div class="progress-fill" style="width:${pct}%;background:var(${pct>70?'--ac':pct>30?'--a':'--r'})"></div></div>`:''}
+      <div style="display:flex;gap:16px;font-size:11px;color:var(--txm);align-items:center">
+        <span>📷 ${c.photos?.length||0}</span>
+        <span>📝 ${c.note?'Sì':'No'}</span>
+        <span style="margin-left:auto">›</span>
+      </div>
+    </button>`;
+  });
+}
+function filterList(){renderList()}
+
+async function openDetail(olo){
+  const c=await dbGet('cases',olo);
+  if(!c)return;
+  currentOlo=olo;photos=c.photos||[];geoCoords=c.geo||null;isDraft=c.status!=='Inviato';
+  document.getElementById('detailOlo').textContent=olo;
+  const cat=CATS.find(ct=>ct.name===c.categoria)||CATS[0];
+  document.getElementById('detailCatBadge').innerHTML=pill(c.categoria,cat.bgVar,cat.fgVar);
+  document.getElementById('detailDate').textContent=c.date||'—';
+  document.getElementById('detailAddr').textContent=`${c.indirizzo} ${c.civico}, ${c.comune}`;
+  document.getElementById('detailLoc').textContent=`${c.regione} · ${c.provincia}`;
+  document.getElementById('detailGeo').textContent=geoCoords?`${geoCoords.lat.toFixed(4)}, ${geoCoords.lng.toFixed(4)}`:'Non rilevato';
+  document.getElementById('detailNote').value=c.note||'';
+  updateNoteInfo();
+  renderPhotos();
+  setDraftMode(isDraft);
+  go('detail');
+}
+
+function renderPhotos(){
+  const g=document.getElementById('photoGrid');
+  g.innerHTML='';
+  photos.forEach((p,i)=>{
+    g.innerHTML+=`<div class="photo-thumb"><img src="${p.data}" alt="Foto ${i+1}"><div class="geo-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20,6 9,17 4,12"/></svg></div></div>`;
+  });
+  g.innerHTML+=`<div class="photo-thumb photo-add" onclick="takePhoto()"><svg viewBox="0 0 24 24" fill="none" stroke="var(--txm)" style="width:20px;height:20px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>`;
+  document.getElementById('photoCount').textContent=photos.length;
+}
+
+function takePhoto(){document.getElementById('cameraInput').click()}
+
+function onPhoto(input){
+  if(!input.files[0])return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const photoData={data:e.target.result,timestamp:new Date().toISOString(),geo:geoCoords?{...geoCoords}:null};
+    photos.push(photoData);
+    renderPhotos();
+    if(!geoCoords)getGeo();
+  };
+  reader.readAsDataURL(input.files[0]);
+  input.value='';
+}
+
+function getGeo(){
+  if(!navigator.geolocation){document.getElementById('detailGeo').textContent='GPS non disponibile';return}
+  document.getElementById('detailGeo').textContent='Rilevamento...';
+  navigator.geolocation.getCurrentPosition(
+    pos=>{geoCoords={lat:pos.coords.latitude,lng:pos.coords.longitude};document.getElementById('detailGeo').textContent=`${geoCoords.lat.toFixed(4)}, ${geoCoords.lng.toFixed(4)}`},
+    ()=>{document.getElementById('detailGeo').textContent='Errore GPS'}
+  );
+}
+
+function updateNoteInfo(){
+  const n=document.getElementById('detailNote');
+  document.getElementById('noteChars').textContent=`${n.value.length} car.`;
+  document.getElementById('noteTime').textContent=new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+}
+document.addEventListener('DOMContentLoaded',()=>{document.getElementById('detailNote')?.addEventListener('input',updateNoteInfo)});
+
+function setDraftMode(v){
+  isDraft=v;
+  document.getElementById('togDraft').className=v?'sel':'unsel';
+  document.getElementById('togSend').className=v?'unsel':'sel';
+  document.getElementById('submitBtn').textContent=v?'Salva bozza':'Invia completo';
+  document.getElementById('submitBtn').className=v?'btn btn-primary':'btn btn-accent';
+}
+
+async function submitCase(){
+  if(!currentOlo)return;
+  const c=await dbGet('cases',currentOlo)||{};
+  c.olo=currentOlo;
+  c.status=isDraft?'Bozza':'Inviato';
+  c.note=document.getElementById('detailNote').value;
+  c.photos=photos;
+  c.geo=geoCoords;
+  c.lastModified=new Date().toISOString();
+  c.user=currentUser?currentUser.fullName:'';
+  c.matricola=currentUser?currentUser.matricola:'';
+  await dbPut('cases',c);
+  showConfirm(c);
+}
+
+function showConfirm(c){
+  const sent=c.status==='Inviato';
+  document.getElementById('confirmIcon').style.background=sent?'var(--gl)':'var(--al)';
+  document.getElementById('confirmIcon').innerHTML=sent?'<svg viewBox="0 0 24 24" fill="none" stroke="var(--gt)" style="width:30px;height:30px"><polyline points="20,6 9,17 4,12"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="var(--at)" style="width:30px;height:30px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>';
+  document.getElementById('confirmTitle').textContent=sent?'Inviato':'Bozza salvata';
+  document.getElementById('confirmSub').textContent=sent?'Segnalazione e cartella create':'Completa in ufficio quando vuoi';
+
+  const s=document.getElementById('confirmSummary');
+  s.innerHTML=`<p class="ch" style="margin-bottom:14px">Riepilogo</p>`;
+  [[' OLO',c.olo,true],['Tipologia',c.categoria],['Indirizzo',`${c.indirizzo}, ${c.comune}`],['Foto',`${c.photos?.length||0} georeferenziate`],['Stato',c.status]].forEach(([l,v,mono],i)=>{
+    s.innerHTML+=`<div style="display:flex;justify-content:space-between;padding:9px 0;${i?'border-top:.5px solid var(--bd)':''}">
+      <span style="font-size:13px;color:var(--txm)">${l}</span>
+      <span style="font-size:13px;color:var(--tx);font-weight:500;${mono?'font-family:var(--mono)':''};text-align:right;max-width:55%">${v}</span>
+    </div>`;
+  });
+
+  const f=document.getElementById('confirmFolder');
+  if(sent){
+    f.innerHTML=`<div class="card" style="padding:18px 20px">
+      <p class="ch" style="margin-bottom:12px">Cartella SharePoint</p>
+      <div class="tree-line" style="color:var(--tx2)"><span>📁</span> OpenField</div>
+      <div class="tree-line" style="padding-left:20px;color:var(--tx2)"><span>📁</span> ${currentUser}</div>
+      <div class="tree-line" style="padding-left:40px;color:var(--tx);font-weight:500"><span>📁</span> ${c.olo} <span class="pill" style="background:var(--gl);color:var(--gt);margin-left:6px">nuova</span></div>
+      <div class="tree-line" style="padding-left:60px;font-size:11px;color:var(--txm)">🖼 IMG_001 — ${String(c.photos?.length||0).padStart(3,'0')}.jpg</div>
+      <div class="tree-line" style="padding-left:60px;font-size:11px;color:var(--txm)">📄 note.txt</div>
+    </div>`;
+  }else{f.innerHTML=''}
+
+  const sy=document.getElementById('confirmSync');
+  sy.innerHTML=`<div style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--card);border-radius:16px;border:.5px solid var(--bd)">
+    <div style="width:40px;height:40px;border-radius:12px;background:var(${sent?'--gl':'--al'});display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      ${sent?'☁':'👁'}
+    </div>
+    <div><div style="font-size:13px;font-weight:500;color:var(--tx)">${sent?'Upload completato':'Visibile in ALADIN'}</div>
+    <div style="font-size:11px;color:var(--txm)">${sent?`${c.photos?.length||0} foto + nota su SharePoint`:"L'admin vede la bozza"}</div></div>
+  </div>`;
+  go('confirm');
+}
+
+async function refreshDrafts(){
+  const cases=await dbGetAll('cases');
+  const drafts=cases.filter(c=>c.status==='Bozza').sort((a,b)=>(b.lastModified||'').localeCompare(a.lastModified||''));
+  const el=document.getElementById('draftList');
+  el.innerHTML='';
+  if(!drafts.length){el.innerHTML='<p style="color:var(--txm);font-size:13px;padding:40px 0;text-align:center">Nessuna bozza. Inizia una nuova attività dalla home.</p>';return}
+  drafts.forEach(c=>{
+    const pct=Math.min(90,((c.photos?.length||0)*15+(c.note?30:0)+(c.geo?20:0)));
+    const miss=[];
+    if(!c.photos?.length)miss.push('foto');if(!c.note)miss.push('note');if(!c.geo)miss.push('GPS');
+    el.innerHTML+=`<button class="card" style="padding:18px 20px;width:100%;text-align:left;cursor:pointer;border:none" onclick="openDetail('${c.olo}')">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span class="mono" style="font-size:13px;font-weight:500;color:var(--tx)">${c.olo}</span>
+        ${pill('Bozza','--al','--at')}
+      </div>
+      <div style="font-size:13px;color:var(--tx2);margin-bottom:12px">${c.indirizzo}, ${c.comune}</div>
+      <div class="progress" style="margin-bottom:8px"><div class="progress-fill" style="width:${pct}%;background:var(${pct>70?'--ac':pct>30?'--a':'--r'})"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--txm)">
+        <span>${miss.length?'Mancano: '+miss.join(', '):'Completa'}</span>
+        <span style="font-weight:500;color:var(${pct>70?'--ac':pct>30?'--a':'--r'})">${pct}%</span>
+      </div>
+    </button>`;
+  });
+}
+
+async function globalSearch(q){
+  if(!q){go('home');return}
+  currentCat='';
+  document.getElementById('listTitle').textContent='Ricerca';
+  document.getElementById('listBadge').innerHTML='';
+  document.getElementById('listSearch').value=q;
+  go('list');
+}
+
+async function loadDemoData(){
+  const existing=await dbGetAll('cases');
+  if(existing.length>0)return;
+  const demo=[
+    {olo:'OLO-2026-04821',categoria:'Blocco tecnico',indirizzo:'Via Corsica 12',civico:'12',comune:'Genova',provincia:'Genova',regione:'Liguria',date:'07/07/2026',status:'Bozza',note:'Pozzetto ostruito da radici',photos:[],geo:{lat:44.4038,lng:8.9511},lastModified:'2026-07-07T09:30:00'},
+    {olo:'OLO-2026-04798',categoria:'Blocco tecnico',indirizzo:'Piazza De Ferrari 1',civico:'1',comune:'Genova',provincia:'Genova',regione:'Liguria',date:'05/07/2026',status:'Bozza',note:'',photos:[],geo:null,lastModified:'2026-07-05T14:20:00'},
+    {olo:'OLO-2026-04756',categoria:'Sopralluogo',indirizzo:'Via XX Settembre 33',civico:'33',comune:'Genova',provincia:'Genova',regione:'Liguria',date:'03/07/2026',status:'Inviato',note:'Sopralluogo completato, nessun impedimento',photos:[],geo:{lat:44.4072,lng:8.9340},lastModified:'2026-07-03T11:00:00'},
+    {olo:'OLO-2026-04712',categoria:'Preventivo',indirizzo:'Corso Italia 8',civico:'8',comune:'Genova',provincia:'Genova',regione:'Liguria',date:'01/07/2026',status:'Inviato',note:'Preventivo approvato, lavori in programma',photos:[],geo:{lat:44.3890,lng:8.9560},lastModified:'2026-07-01T16:45:00'},
+    {olo:'OLO-2026-04650',categoria:'Consuntivo',indirizzo:'Via Balbi 33',civico:'33',comune:'Genova',provincia:'Genova',regione:'Liguria',date:'28/06/2026',status:'Bozza',note:'',photos:[],geo:null,lastModified:'2026-06-28T10:00:00'},
+  ];
+  for(const c of demo)await dbPut('cases',c);
+}
+
+async function init(){
+  await initDB();
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+  const saved=await dbGet('config','user');
+  if(saved&&saved.value){
+    currentUser=saved.value;
+    applyUser();
+    await loadDemoData();
+    go('home');
+  }else{
+    go('login');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
