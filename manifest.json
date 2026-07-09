@@ -10,7 +10,7 @@
   "theme_color": "#0A7B5C",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230A7B5C'/%3E%3Ctext x='256' y='330' text-anchor='middle' font-family='Georgia' font-size='220' fill='white'%3EOF%3C/text%3E%3C/svg%3E",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='102' fill='%230A7B5C'/%3E%3Ctext x='256' y='334' text-anchor='middle' font-family='Georgia,serif' font-size='224' fill='white'%3EOF%3C/text%3E%3C/svg%3E",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
