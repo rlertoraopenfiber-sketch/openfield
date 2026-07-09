@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#F7F6F3" id="tc">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="OpenField">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%230A7B5C'/><text x='90' y='115' text-anchor='middle' font-family='Georgia' font-size='72' fill='%23fff'>OF</text></svg>">
 <title>OpenField</title>
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -87,6 +90,14 @@ input,textarea,select,button{font-family:inherit;font-size:inherit}
 .tree-line{display:flex;align-items:center;gap:8px;padding:6px 0;font-family:var(--mono);font-size:12px}
 .fade-in{animation:fadeIn .3s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+#installBanner{display:none;position:fixed;bottom:0;left:0;right:0;z-index:999;padding:16px 20px calc(env(safe-area-inset-bottom,8px) + 16px);background:var(--card);border-top:.5px solid var(--bd);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:fadeIn .3s ease}
+#installBanner .ib-row{display:flex;align-items:center;gap:14px}
+#installBanner .ib-icon{width:48px;height:48px;border-radius:12px;background:#0A7B5C;display:flex;align-items:center;justify-content:center;color:#fff;font-family:Georgia;font-size:18px;font-weight:bold;flex-shrink:0}
+#installBanner .ib-text{flex:1}
+#installBanner .ib-title{font-size:14px;font-weight:500;color:var(--tx)}
+#installBanner .ib-sub{font-size:12px;color:var(--txm);margin-top:2px;line-height:1.4}
+#installBanner .ib-btn{padding:10px 20px;border-radius:10px;background:#0A7B5C;color:#fff;border:none;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--sans);white-space:nowrap}
+#installBanner .ib-close{background:none;border:none;color:var(--txm);font-size:20px;cursor:pointer;padding:0 0 0 8px}
 </style>
 </head>
 <body>
@@ -263,6 +274,19 @@ input,textarea,select,button{font-family:inherit;font-size:inherit}
       Nuova attività
     </button>
     <button class="btn btn-ghost" style="width:100%;margin-top:6px" onclick="go('drafts')">Vai alle bozze</button>
+  </div>
+</div>
+
+<!-- ═══ INSTALL BANNER ═══ -->
+<div id="installBanner">
+  <div class="ib-row">
+    <div class="ib-icon">OF</div>
+    <div class="ib-text">
+      <div class="ib-title">Installa OpenField</div>
+      <div class="ib-sub" id="ibSub">Aggiungi alla schermata Home per accesso rapido</div>
+    </div>
+    <button class="ib-btn" id="ibBtn" onclick="doInstall()">Installa</button>
+    <button class="ib-close" onclick="closeBanner()">&times;</button>
   </div>
 </div>
 
@@ -587,7 +611,51 @@ async function init(){
 }
 
 init();
+
+let deferredPrompt=null;
+const isStandalone=window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone;
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  if(!isStandalone&&!localStorage.getItem('installDismissed'))showBanner('android');
+});
+
+window.addEventListener('load',()=>{
+  if(isStandalone)return;
+  if(localStorage.getItem('installDismissed'))return;
+  if(isIOS&&!window.navigator.standalone){
+    setTimeout(()=>showBanner('ios'),2000);
+  }
+});
+
+function showBanner(type){
+  const b=document.getElementById('installBanner');
+  const btn=document.getElementById('ibBtn');
+  const sub=document.getElementById('ibSub');
+  if(type==='ios'){
+    sub.innerHTML='Tocca <b>Condividi</b> ↑ poi <b>Aggiungi a Home</b>';
+    btn.style.display='none';
+  }else{
+    sub.textContent='Aggiungi alla schermata Home per accesso rapido';
+    btn.style.display='';
+  }
+  b.style.display='block';
+}
+
+async function doInstall(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  const r=await deferredPrompt.userChoice;
+  if(r.outcome==='accepted')closeBanner();
+  deferredPrompt=null;
+}
+
+function closeBanner(){
+  document.getElementById('installBanner').style.display='none';
+  localStorage.setItem('installDismissed','1');
+}
 </script>
 </body>
 </html>
-
