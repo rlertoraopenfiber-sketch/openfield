@@ -2,15 +2,16 @@
   "name": "OpenField",
   "short_name": "OpenField",
   "description": "Gestione attività sul campo — OpenFiber",
-  "start_url": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#F7F6F3",
   "theme_color": "#0A7B5C",
-  "orientation": "portrait",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230A7B5C'/><text x='96' y='120' text-anchor='middle' font-family='Georgia' font-size='80' fill='%23fff'>OF</text></svg>",
-      "sizes": "192x192",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230A7B5C'/%3E%3Ctext x='256' y='330' text-anchor='middle' font-family='Georgia' font-size='220' fill='white'%3EOF%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
