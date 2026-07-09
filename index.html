@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{
 --bg:#F7F6F3;--card:#FFF;--sub:#EFEEE9;--sub2:#F3F2ED;
@@ -507,7 +508,73 @@ async function submitCase(){
   c.user=currentUser?currentUser.fullName:'';
   c.matricola=currentUser?currentUser.matricola:'';
   await dbPut('cases',c);
+
+  if(!isDraft){
+    await exportZip(c);
+  }
   showConfirm(c);
+}
+
+async function exportZip(c){
+  const zip=new JSZip();
+  const folderName=`${c.user||'Operatore'}/${c.olo}`;
+  const folder=zip.folder(folderName);
+
+  const meta={
+    olo:c.olo,
+    categoria:c.categoria||'',
+    indirizzo:`${c.indirizzo||''} ${c.civico||''}, ${c.comune||''}`,
+    regione:c.regione||'',
+    provincia:c.provincia||'',
+    comune:c.comune||'',
+    user:c.user||'',
+    matricola:c.matricola||'',
+    status:'Inviato',
+    geo:c.geo||null,
+    dataInvio:new Date().toISOString(),
+    numFoto:(c.photos||[]).length,
+    device:navigator.userAgent
+  };
+  folder.file('metadata.json',JSON.stringify(meta,null,2));
+
+  if(c.note){
+    folder.file('note.txt',c.note);
+  }
+
+  if(c.photos&&c.photos.length){
+    for(let i=0;i<c.photos.length;i++){
+      const p=c.photos[i];
+      const base64=p.data.split(',')[1];
+      const ext=p.data.startsWith('data:image/png')?'png':'jpg';
+      const fname=`IMG_${String(i+1).padStart(3,'0')}.${ext}`;
+      folder.file(fname,base64,{base64:true});
+
+      if(p.geo||p.timestamp){
+        const photoMeta={timestamp:p.timestamp||'',geo:p.geo||null};
+        folder.file(`IMG_${String(i+1).padStart(3,'0')}_geo.json`,JSON.stringify(photoMeta,null,2));
+      }
+    }
+  }
+
+  const blob=await zip.generateAsync({type:'blob'});
+  const fileName=`${c.olo}_${new Date().toISOString().slice(0,10)}.zip`;
+
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],fileName)]})){
+    try{
+      await navigator.share({
+        title:`OpenField — ${c.olo}`,
+        text:`Segnalazione ${c.olo} — ${c.user}`,
+        files:[new File([blob],fileName,{type:'application/zip'})]
+      });
+      return;
+    }catch(e){}
+  }
+
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=fileName;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 function showConfirm(c){
