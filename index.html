@@ -758,6 +758,15 @@ async function submitCase(asDraft){
   }
 }
 
+const WEBHOOK_URL='https://default67220c3e15dd4005afc5574f236fdd.00.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/01/workflows/b143c6777bb54c30922a488a6cdbf506/triggers/manual/paths/invoke?api-version=1';
+
+function blobToBase64(blob){return new Promise((res,rej)=>{
+  const r=new FileReader();
+  r.onload=()=>res(r.result.split(',')[1]);
+  r.onerror=()=>rej(new Error('Lettura fallita'));
+  r.readAsDataURL(blob);
+})}
+
 async function exportZip(c){
   const base=`${c.user||'Operatore'}/${c.olo}`;
   const files=[{name:`${base}/metadata.json`,data:txt(JSON.stringify({
@@ -781,18 +790,35 @@ async function exportZip(c){
   const blob=makeZipBlob(files);
   const name=`${c.olo}_${new Date().toISOString().slice(0,10)}.zip`;
 
+  /* 1. Prova webhook Power Automate → Teams/Consegne */
+  try{
+    busy(true,'Invio a Teams\u2026');
+    const b64=await blobToBase64(blob);
+    const resp=await fetch(WEBHOOK_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({filename:name, data:b64, operatore:c.user||'', olo:c.olo})
+    });
+    if(resp.ok||resp.status===202) return; /* successo */
+    throw new Error('HTTP '+resp.status);
+  }catch(webhookErr){
+    console.warn('Webhook fallito, fallback:',webhookErr.message);
+  }
+
+  /* 2. Fallback: Web Share API */
   let file=null;
   try{ file=new File([blob],name,{type:'application/zip'}) }catch(e){}
-
   if(file && navigator.canShare?.({files:[file]}) && navigator.share){
     try{
+      busy(true,'Condivisione\u2026');
       await navigator.share({title:`OpenField \u2014 ${c.olo}`,text:`Segnalazione ${c.olo} \u2014 ${c.user}`,files:[file]});
       return;
     }catch(e){
       if(e.name==='AbortError')throw e;
-      // condivisione non riuscita: si prosegue col download
     }
   }
+
+  /* 3. Fallback: download */
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob); a.download=name;
   document.body.appendChild(a); a.click(); a.remove();
