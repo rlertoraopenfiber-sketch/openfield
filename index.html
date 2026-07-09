@@ -758,15 +758,6 @@ async function submitCase(asDraft){
   }
 }
 
-const WEBHOOK_URL='https://default67220c3e15dd4005afc5574f236fdd.00.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/01/workflows/b143c6777bb54c30922a488a6cdbf506/triggers/manual/paths/invoke?api-version=1';
-
-function blobToBase64(blob){return new Promise((res,rej)=>{
-  const r=new FileReader();
-  r.onload=()=>res(r.result.split(',')[1]);
-  r.onerror=()=>rej(new Error('Lettura fallita'));
-  r.readAsDataURL(blob);
-})}
-
 async function exportZip(c){
   const base=`${c.user||'Operatore'}/${c.olo}`;
   const files=[{name:`${base}/metadata.json`,data:txt(JSON.stringify({
@@ -790,38 +781,20 @@ async function exportZip(c){
   const blob=makeZipBlob(files);
   const name=`${c.olo}_${new Date().toISOString().slice(0,10)}.zip`;
 
-  /* 1. Prova webhook Power Automate → Teams/Consegne (no-cors bypass) */
-  try{
-    busy(true,'Invio a Teams\u2026');
-    const b64=await blobToBase64(blob);
-    const payload=JSON.stringify({filename:name, data:b64, operatore:c.user||'', olo:c.olo});
-    await fetch(WEBHOOK_URL,{
-      method:'POST',
-      mode:'no-cors',
-      headers:{'Content-Type':'text/plain'},
-      body:payload
-    });
-    /* no-cors: risposta opaca, non possiamo leggere lo status.
-       Se il server accetta, lo ZIP è in Consegne. Verifica asincrona. */
-    return;
-  }catch(webhookErr){
-    console.warn('Webhook fallito, fallback:',webhookErr.message);
-  }
-
-  /* 2. Fallback: Web Share API */
+  /* Condivisione via share sheet → il tecnico tocca Teams → Consegne */
   let file=null;
   try{ file=new File([blob],name,{type:'application/zip'}) }catch(e){}
+
   if(file && navigator.canShare?.({files:[file]}) && navigator.share){
     try{
-      busy(true,'Condivisione\u2026');
-      await navigator.share({title:`OpenField \u2014 ${c.olo}`,text:`Segnalazione ${c.olo} \u2014 ${c.user}`,files:[file]});
+      await navigator.share({title:`OpenField \u2014 ${c.olo}`,text:`${c.categoria} \u2014 ${c.olo}\nInvia su Teams \u2192 canale Consegne`,files:[file]});
       return;
     }catch(e){
       if(e.name==='AbortError')throw e;
     }
   }
 
-  /* 3. Fallback: download */
+  /* Fallback: download diretto */
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob); a.download=name;
   document.body.appendChild(a); a.click(); a.remove();
@@ -836,7 +809,7 @@ function showConfirm(c,isDraft){
     ?'<svg viewBox="0 0 24 24" fill="none" stroke="var(--at)" style="width:30px;height:30px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>'
     :'<svg viewBox="0 0 24 24" fill="none" stroke="var(--gt)" style="width:30px;height:30px;stroke-width:2.4"><polyline points="20,6 9,17 4,12"/></svg>';
   document.getElementById('confirmTitle').textContent=isDraft?'Bozza salvata':'Pacchetto consegnato';
-  document.getElementById('confirmSub').textContent=isDraft?'Completa in ufficio quando vuoi':'Inviato a Teams \u2014 verifica in Consegne';
+  document.getElementById('confirmSub').textContent=isDraft?'Completa in ufficio quando vuoi':'Condiviso tramite Teams';
 
   const s=document.getElementById('confirmSummary');
   s.innerHTML='<p class="ch" style="margin-bottom:14px">Riepilogo</p>';
@@ -869,8 +842,8 @@ function showConfirm(c,isDraft){
           ?'<circle cx="12" cy="12" r="3"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>'
           :'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/>'}</svg>
       </div>
-      <div><div style="font-size:13px;font-weight:600;color:var(--tx)">${isDraft?'Salvata sul dispositivo':'Scegli dove salvarlo'}</div>
-      <div style="font-size:11px;color:var(--txm);line-height:1.4">${isDraft?'Riprendila dalla sezione Bozze':'OneDrive, Teams oppure email'}</div></div>
+      <div><div style="font-size:13px;font-weight:600;color:var(--tx)">${isDraft?'Salvata sul dispositivo':'Inviato su Teams'}</div>
+      <div style="font-size:11px;color:var(--txm);line-height:1.4">${isDraft?'Riprendila dalla sezione Bozze':'Canale Consegne del team OpenField'}</div></div>
     </div>`;
   go('confirm');
 }
