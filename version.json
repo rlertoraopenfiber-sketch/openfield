@@ -1,0 +1,5 @@
+{
+  "app": "3.0.0",
+  "data": "2026-07-10",
+  "note": "Rigenerato da ALADIN insieme a casi.json. Bumpare 'app' a ogni modifica di index.html o sw.js."
+}

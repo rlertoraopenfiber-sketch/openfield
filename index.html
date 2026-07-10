@@ -147,7 +147,7 @@ button{cursor:pointer}
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin-top:6px;margin-bottom:26px">
       <p class="mono" style="font-size:12px;color:var(--txm)" id="dateStr"></p>
-      <button onclick="reloadCasi()" style="background:var(--sub);border:none;border-radius:8px;padding:5px 12px;font-size:11px;color:var(--tx2);display:flex;align-items:center;gap:4px;margin-left:auto">
+      <button onclick="hardRefresh()" style="background:var(--sub);border:none;border-radius:8px;padding:5px 12px;font-size:11px;color:var(--tx2);display:flex;align-items:center;gap:4px;margin-left:auto">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:13px;height:13px"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
         Aggiorna dati
       </button>
@@ -155,7 +155,7 @@ button{cursor:pointer}
   </div>
   <div style="position:relative;margin:0 24px 22px">
     <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input class="input" style="padding-left:46px" placeholder="Codice OLO, indirizzo, comune..." id="homeSearch">
+    <input class="input" style="padding-left:46px" placeholder="Comune, via, civico, ID building..." id="homeSearch">
   </div>
   <p class="ch" style="padding:0 24px;margin-bottom:14px">Tipologia attivit&agrave;</p>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 24px" id="catGrid"></div>
@@ -170,18 +170,18 @@ button{cursor:pointer}
 <div class="screen" id="s-list" style="position:relative">
   <div style="display:flex;align-items:center;gap:12px;padding:18px 24px 0">
     <button class="back-btn" onclick="go('home')" aria-label="Indietro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:20px;height:20px"><path d="m15 18-6-6 6-6"/></svg></button>
-    <span class="serif" style="font-size:20px" id="listTitle">Casi</span>
+    <span class="serif" style="font-size:20px" id="listTitle">Civici AGF</span>
     <div style="margin-left:auto" id="listBadge"></div>
   </div>
   <div style="position:relative;margin:18px 24px 0">
     <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input class="input" style="padding-left:46px" placeholder="Cerca..." id="listSearch">
+    <input class="input" style="padding-left:46px" placeholder="Comune, via, civico, ID building..." id="listSearch">
   </div>
   <div style="display:flex;justify-content:space-between;padding:20px 24px 8px">
     <span class="ch" id="listCount">0 risultati</span>
   </div>
   <div style="padding:0 24px 90px;flex:1" id="listItems"></div>
-  <button class="fab" onclick="openNewCase()" aria-label="Nuova attivit&agrave;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:24px;height:24px;stroke-width:2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+
 </div>
 
 <!-- DETAIL -->
@@ -194,20 +194,59 @@ button{cursor:pointer}
 
   <div class="card" style="margin:18px 24px 0;padding:20px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <span id="detailCatBadge"></span>
+      <span class="mono" style="font-size:10px;color:var(--txm);letter-spacing:1.5px" id="detailSub"></span>
       <span class="mono" style="font-size:11px;color:var(--txm)" id="detailDate"></span>
     </div>
     <p class="serif" style="font-size:17px;margin-bottom:4px" id="detailAddr"></p>
     <p style="font-size:12px;color:var(--txm);margin-bottom:14px" id="detailLoc"></p>
+    <button class="btn btn-accent" style="margin-bottom:10px" onclick="openMaps()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+      Vai &mdash; naviga con Maps
+    </button>
     <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--sub);border-radius:12px">
       <svg viewBox="0 0 24 24" fill="none" stroke="var(--bt)" style="width:15px;height:15px;flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      <span class="mono" style="font-size:11px;flex:1" id="detailGeo">Non rilevato</span>
-      <button style="font-size:11px;color:var(--bt);font-weight:600;background:none;border:none;padding:4px" onclick="getGeo()">Rileva GPS</button>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:11px;color:var(--txm);margin-bottom:2px">La tua posizione &mdash; facoltativa</div>
+        <span class="mono" style="font-size:11px" id="detailGeo">Non allegata</span>
+      </div>
+      <button style="font-size:11px;color:var(--bt);font-weight:600;background:none;border:none;padding:4px" onclick="getGeo()">Allega</button>
+    </div>
+  </div>
+
+  <div style="padding:20px 24px 10px"><span class="ch">Rilevazione in campo</span></div>
+  <div class="card" style="margin:0 24px;padding:18px 20px;display:flex;flex-direction:column;gap:18px">
+
+    <div>
+      <label class="ch" style="display:block;margin-bottom:8px">PTE interno al building o facciata</label>
+      <div style="display:flex;gap:8px" id="segPte"></div>
+    </div>
+
+    <div>
+      <label class="ch" style="display:block;margin-bottom:8px">PTX arretrato</label>
+      <div style="display:flex;gap:8px" id="segPtx"></div>
+    </div>
+
+    <div>
+      <label class="ch" style="display:block;margin-bottom:6px">Scavo necessario &mdash; metri</label>
+      <input class="input" id="fScavo" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+      <p style="font-size:11px;color:var(--txm);margin-top:5px;line-height:1.45">Indica <strong>1</strong> se, con PTX arretrato, le tubazioni sono adiacenti alla PP e servono solo piccole opere (buco muro, ecc.)</p>
+    </div>
+
+    <div>
+      <label class="ch" style="display:block;margin-bottom:6px">Presenza adduzione</label>
+      <select class="input" id="fAdduzione" style="appearance:auto"></select>
+      <p style="font-size:11px;color:var(--txm);margin-top:5px;line-height:1.45">Terminale di rete TIM / ED nelle vicinanze</p>
+    </div>
+
+    <div>
+      <label class="ch" style="display:block;margin-bottom:6px">Totale UI &mdash; effettive</label>
+      <input class="input" id="fTotUI" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+      <p style="font-size:11px;color:var(--txm);margin-top:5px" id="uiHint"></p>
     </div>
   </div>
 
   <div style="display:flex;justify-content:space-between;padding:20px 24px 10px">
-    <span class="ch">Foto georeferenziate</span>
+    <span class="ch">Foto</span>
     <span class="mono" style="font-size:11px;color:var(--txm)"><span id="photoCount">0</span> foto</span>
   </div>
   <div class="photo-grid" id="photoGrid"></div>
@@ -215,7 +254,7 @@ button{cursor:pointer}
 
   <div style="padding:20px 24px 0"><span class="ch">Note</span></div>
   <div style="padding:10px 24px 0">
-    <textarea class="input" id="detailNote" rows="3" placeholder="Descrivi l'attivit&agrave;, problemi riscontrati..." style="resize:vertical;min-height:76px;line-height:1.5"></textarea>
+    <textarea class="input" id="detailNote" rows="3" placeholder="Annotazioni sul sopralluogo..." style="resize:vertical;min-height:76px;line-height:1.5"></textarea>
     <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--txm)"><span id="noteTime">&mdash;</span><span id="noteChars">0 car.</span></div>
   </div>
 
@@ -260,20 +299,7 @@ button{cursor:pointer}
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="overlay"><div class="box"><div class="spinner"></div><p id="overlayText" style="font-size:14px;color:var(--tx2)">Attendere&hellip;</p></div></div>
 
-<div id="modal">
-  <div class="box">
-    <p class="serif" style="font-size:22px;margin-bottom:4px">Nuova attivit&agrave;</p>
-    <p style="font-size:12px;color:var(--txm);margin-bottom:18px">Compila i dati del caso</p>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div><label class="ch" style="display:block;margin-bottom:6px">Codice OLO</label><input class="input" id="ncOlo" placeholder="OLO-2026-04821" autocapitalize="characters"></div>
-      <div><label class="ch" style="display:block;margin-bottom:6px">Tipologia</label><select class="input" id="ncCat" style="appearance:auto"></select></div>
-      <div><label class="ch" style="display:block;margin-bottom:6px">Indirizzo e civico</label><input class="input" id="ncAddr" placeholder="Via Corsica 12"></div>
-      <div><label class="ch" style="display:block;margin-bottom:6px">Comune</label><input class="input" id="ncCity" placeholder="Genova"></div>
-    </div>
-    <button class="btn btn-accent" style="margin-top:18px" onclick="createCase()">Crea caso</button>
-    <button class="btn btn-ghost" style="margin-top:4px" onclick="closeModal()">Annulla</button>
-  </div>
-</div>
+
 
 <div id="installBanner">
   <div class="ib-row">
@@ -297,20 +323,24 @@ button{cursor:pointer}
 <script>
 'use strict';
 
-const DB_NAME='openfield', DB_VER=1, APP_VER='2.0.0';
+const DB_NAME='openfield', DB_VER=2, APP_VER='3.0.0';
 const MAX_DIM=1600, JPEG_Q=0.82, MAX_PHOTOS=30;
 
 let db=null, dbOk=false;
-let currentUser=null, currentCat='', currentOlo=null;
+let currentUser=null, currentOlo=null;
 let photos=[], geoCoords=null, deferredPrompt=null;
 let inFlight=false, saveTimer=null;
 
-const CATS=[
-  {id:'blocco',      name:'Blocco tecnico', icon:'\u26A0',   sub:'Impedimenti e criticit\u00E0', bgVar:'--rl', fgVar:'--rt'},
-  {id:'sopralluogo', name:'Sopralluogo',    icon:'\u{1F4CD}',sub:'Rilievo tecnico sito',        bgVar:'--bl', fgVar:'--bt'},
-  {id:'preventivo',  name:'Preventivo',     icon:'\u{1F4C4}',sub:'Stima costi intervento',      bgVar:'--al', fgVar:'--at'},
-  {id:'consuntivo',  name:'Consuntivo',     icon:'\u2705',   sub:'Chiusura e rendiconto',       bgVar:'--gl', fgVar:'--gt'},
+/* 4 moduli home: solo AGF attivo, gli altri in arrivo */
+const MODULES=[
+  {id:'agf', name:'Verifica civici AGF', icon:'\u{1F4CD}', sub:'Sopralluogo civici da rilevare', bgVar:'--bl',  fgVar:'--bt',  active:true},
+  {id:'m2',  name:'Modulo 2',            icon:'\u{1F4CB}', sub:'Coming soon',                    bgVar:'--sub', fgVar:'--txm', active:false},
+  {id:'m3',  name:'Modulo 3',            icon:'\u{1F4C4}', sub:'Coming soon',                    bgVar:'--sub', fgVar:'--txm', active:false},
+  {id:'m4',  name:'Modulo 4',            icon:'\u2705',    sub:'Coming soon',                    bgVar:'--sub', fgVar:'--txm', active:false},
 ];
+
+/* Valori ammessi \u2014 fonte: Foglio2 del Tracking AGF */
+const ADDUZIONE=['','TIM interrata','TIM aerea','ED interrata','ED aerea','Privata interrata','Assente'];
 
 const DEMO=[];
 
@@ -488,24 +518,24 @@ async function refreshHome(){
   document.getElementById('statSent').textContent=cases.filter(c=>c.status==='Inviato').length;
 
   const grid=document.getElementById('catGrid'); grid.innerHTML='';
-  CATS.forEach(cat=>{
-    const n=cases.filter(c=>c.categoria===cat.name).length;
+  MODULES.forEach(mod=>{
     const b=document.createElement('button');
     b.className='card';
-    b.style.cssText='padding:22px 18px 18px;text-align:left;border:.5px solid var(--bd)';
-    b.innerHTML=`<div style="width:42px;height:42px;border-radius:12px;background:var(${cat.bgVar});display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px">${cat.icon}</div>
-      <div style="font-size:14px;font-weight:600;color:var(--tx);line-height:1.2;margin-bottom:4px">${cat.name}</div>
-      <div style="font-size:12px;color:var(--txm);line-height:1.35;margin-bottom:10px">${cat.sub}</div>
-      <div style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--tx2)"><span style="width:5px;height:5px;border-radius:50%;background:var(${cat.fgVar})"></span>${n}</div>`;
-    b.addEventListener('click',()=>openCat(cat.id));
+    b.style.cssText=`padding:22px 18px 18px;text-align:left;border:.5px solid var(--bd);${mod.active?'':'opacity:.5'}`;
+    const foot=mod.active
+      ? `<div style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--tx2)"><span style="width:5px;height:5px;border-radius:50%;background:var(${mod.fgVar})"></span>${cases.length.toLocaleString('it-IT')}</div>`
+      : `<div style="font-family:var(--mono);font-size:10px;color:var(--txm);letter-spacing:.5px">COMING SOON</div>`;
+    b.innerHTML=`<div style="width:42px;height:42px;border-radius:12px;background:var(${mod.bgVar});display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px">${mod.icon}</div>
+      <div style="font-size:14px;font-weight:600;color:var(--tx);line-height:1.2;margin-bottom:4px">${mod.name}</div>
+      <div style="font-size:12px;color:var(--txm);line-height:1.35;margin-bottom:10px">${mod.sub}</div>${foot}`;
+    b.addEventListener('click',()=>mod.active?openModule(mod.id):toast('Modulo non ancora disponibile','info',2200));
     grid.appendChild(b);
   });
 }
-function openCat(catId){
-  const cat=CATS.find(c=>c.id===catId); if(!cat)return;
-  currentCat=cat.name;
-  document.getElementById('listTitle').textContent=cat.name;
-  document.getElementById('listBadge').innerHTML=pill(cat.name,cat.bgVar,cat.fgVar);
+function openModule(id){
+  const mod=MODULES.find(m=>m.id===id); if(!mod?.active)return;
+  document.getElementById('listTitle').textContent=mod.name;
+  document.getElementById('listBadge').innerHTML='';
   document.getElementById('listSearch').value='';
   go('list');
 }
@@ -513,19 +543,26 @@ function openCat(catId){
 /* ══ Lista ══════════════════════════════════════════════════ */
 function progressOf(c){
   if(c.status==='Inviato')return 100;
-  return Math.min(95,(c.photos?.length?40:0)+(c.note?35:0)+(c.geo?20:0));
+  const done=[c.pte,c.ptx,c.scavo!=null,c.adduzione,c.totUI!=null].filter(Boolean).length;
+  return Math.round((done/5)*100);
+}
+function isComplete(c){
+  return !!(c.pte && c.ptx && c.scavo!=null && c.adduzione && c.totUI!=null);
 }
 async function renderList(){
   const cases=await dbGetAll('cases');
-  let list=currentCat?cases.filter(c=>c.categoria===currentCat):cases;
+  let list=cases;
   const q=document.getElementById('listSearch').value.trim().toLowerCase();
-  if(q)list=list.filter(c=>[c.olo,c.indirizzo,c.comune].some(v=>String(v||'').toLowerCase().includes(q)));
+  if(q)list=list.filter(c=>[c.olo,c.egon,c.indirizzo,c.civico,c.comune,c.provincia].some(v=>String(v||'').toLowerCase().includes(q)));
+  else list=list.slice(0,300);   /* senza ricerca mostra solo i primi 300: 11.910 righe ucciderebbero il DOM */
   list.sort((a,b)=>String(b.lastModified||'').localeCompare(String(a.lastModified||'')));
-  document.getElementById('listCount').textContent=`${list.length} ${list.length===1?'risultato':'risultati'}`;
+  document.getElementById('listCount').textContent = q
+    ? `${list.length} ${list.length===1?'risultato':'risultati'}`
+    : `${cases.length.toLocaleString('it-IT')} civici \u00B7 primi 300 \u2014 usa la ricerca`;
 
   const el=document.getElementById('listItems'); el.innerHTML='';
   if(!list.length){
-    el.innerHTML='<p style="color:var(--txm);font-size:13px;padding:32px 0;text-align:center;line-height:1.6">Nessun caso.<br>Tocca + per crearne uno.</p>';
+    el.innerHTML='<p style="color:var(--txm);font-size:13px;padding:32px 0;text-align:center;line-height:1.6">Nessun civico trovato.<br>Prova con comune, via o ID building.</p>';
     return;
   }
   list.forEach(c=>{
@@ -533,68 +570,71 @@ async function renderList(){
     const pct=progressOf(c);
     const row=document.createElement('div');
     row.className='row-item';
+    const addr=[c.indirizzo,c.civico].filter(Boolean).join(' ');
     row.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span class="mono" style="font-size:13px;font-weight:600;color:var(--tx)">${esc(c.olo)}</span>${pill(c.status,st[0],st[1])}</div>
-      <div style="font-size:13px;color:var(--tx2);margin-bottom:8px;line-height:1.4">${esc(c.indirizzo||'\u2014')}${c.comune?', '+esc(c.comune):''}</div>
+        <span style="font-size:13px;font-weight:600;color:var(--tx)">${esc(addr||'\u2014')}</span>${pill(c.status,st[0],st[1])}</div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:4px">${esc(c.comune||'')}${c.provincia?' \u00B7 '+esc(c.provincia):''}</div>
+      <div class="mono" style="font-size:10px;color:var(--txm);margin-bottom:8px">${esc(c.olo)}</div>
       ${c.status==='Bozza'?`<div class="progress" style="margin-bottom:8px"><div class="progress-fill" style="width:${pct}%;background:var(${pct>70?'--ac':pct>30?'--a':'--r'})"></div></div>`:''}
-      <div style="display:flex;gap:16px;font-size:11px;color:var(--txm);align-items:center">
-        <span>${(c.photos?.length||0)} foto</span><span>${c.note?'note ok':'note \u2014'}</span><span>${c.geo?'GPS ok':'GPS \u2014'}</span>
+      <div style="display:flex;gap:14px;font-size:11px;color:var(--txm);align-items:center">
+        <span>${c.numUI||0} UI</span><span>${(c.photos?.length||0)} foto</span><span>${pct}%</span>
         <span style="margin-left:auto;font-size:15px">\u203A</span></div>`;
     row.addEventListener('click',()=>openDetail(c.olo));
     el.appendChild(row);
   });
 }
 
-/* ══ Nuovo caso (modale, niente prompt) ═════════════════════ */
-function openNewCase(){
-  const sel=document.getElementById('ncCat');
-  sel.innerHTML=CATS.map(c=>`<option${c.name===currentCat?' selected':''}>${c.name}</option>`).join('');
-  document.getElementById('ncOlo').value='';
-  document.getElementById('ncAddr').value='';
-  document.getElementById('ncCity').value='';
-  document.getElementById('modal').style.display='flex';
+/* ══ Segmented SI/NO ════════════════════════════════════════ */
+function renderSeg(elId,value){
+  const el=document.getElementById(elId); el.innerHTML='';
+  ['SI','NO'].forEach(v=>{
+    const on=value===v;
+    const b=document.createElement('button');
+    b.type='button'; b.dataset.val=v;
+    b.style.cssText=`flex:1;padding:11px;border-radius:10px;font-size:13px;font-weight:600;border:1px solid ${on?'var(--bt)':'var(--bd)'};background:${on?'var(--bl)':'transparent'};color:${on?'var(--bt)':'var(--txm)'}`;
+    b.textContent=v;
+    b.addEventListener('click',()=>{renderSeg(elId,on?'':v);scheduleSave()});
+    el.appendChild(b);
+  });
+  el.dataset.value=value||'';
 }
-function closeModal(){document.getElementById('modal').style.display='none'}
+function segVal(elId){return document.getElementById(elId).dataset.value||''}
 
-async function createCase(){
-  const olo=document.getElementById('ncOlo').value.trim().toUpperCase();
-  if(!olo){toast('Il codice OLO \u00E8 obbligatorio','err');return}
-  if(await dbGet('cases',olo)){closeModal();toast('Caso gi\u00E0 esistente. Lo apro.','info');return openDetail(olo)}
-  const c={olo,
-    categoria:document.getElementById('ncCat').value,
-    indirizzo:document.getElementById('ncAddr').value.trim(),
-    civico:'', comune:document.getElementById('ncCity').value.trim(),
-    provincia:'', regione:currentUser?.area||'',
-    date:new Date().toLocaleDateString('it-IT'),
-    status:'Bozza', note:'', photos:[], geo:null,
-    user:currentUser?.fullName||'', matricola:currentUser?.matricola||'',
-    lastModified:new Date().toISOString()};
-  try{
-    await dbPut('cases',c);
-    closeModal(); toast('Caso creato','ok'); openDetail(olo);
-  }catch(err){ toast('Creazione fallita: '+err.message,'err',6000) }
+/* ══ Navigazione Maps ═══════════════════════════════════════ */
+async function openMaps(){
+  const c=await dbGet('cases',currentOlo);
+  if(!c?.lat||!c?.lng){toast('Coordinate non disponibili per questo civico','err');return}
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}&travelmode=driving`,'_blank');
 }
 
 /* ══ Dettaglio ══════════════════════════════════════════════ */
 async function openDetail(olo){
   const c=await dbGet('cases',olo);
-  if(!c){toast('Caso non trovato','err');return}
+  if(!c){toast('Civico non trovato','err');return}
   currentOlo=olo;
   photos=Array.isArray(c.photos)?c.photos.slice():[];
   geoCoords=c.geo||null;
 
   document.getElementById('detailOlo').textContent=c.olo;
-  const cat=CATS.find(x=>x.name===c.categoria)||CATS[0];
-  document.getElementById('detailCatBadge').innerHTML=pill(c.categoria||cat.name,cat.bgVar,cat.fgVar);
+  document.getElementById('detailSub').textContent=c.subregione||'';
   document.getElementById('detailDate').textContent=c.date||'\u2014';
   const addr=[c.indirizzo,c.civico].filter(Boolean).join(' ')+(c.comune?', '+c.comune:'');
   document.getElementById('detailAddr').textContent=addr||'\u2014';
   document.getElementById('detailLoc').textContent=[c.regione,c.provincia].filter(Boolean).join(' \u00B7 ')||'\u2014';
-  document.getElementById('detailGeo').textContent=geoCoords?`${geoCoords.lat.toFixed(5)}, ${geoCoords.lng.toFixed(5)}`:'Non rilevato';
+  document.getElementById('detailGeo').textContent=geoCoords?`${geoCoords.lat.toFixed(5)}, ${geoCoords.lng.toFixed(5)}`:'Non allegata';
+
+  /* form rilevazione */
+  renderSeg('segPte',c.pte||'');
+  renderSeg('segPtx',c.ptx||'');
+  document.getElementById('fScavo').value = c.scavo ?? '';
+  const sel=document.getElementById('fAdduzione');
+  sel.innerHTML=ADDUZIONE.map(v=>`<option value="${v}"${v===(c.adduzione||'')?' selected':''}>${v||'\u2014 Seleziona \u2014'}</option>`).join('');
+  document.getElementById('fTotUI').value = c.totUI ?? (c.numUI ?? '');
+  document.getElementById('uiHint').textContent = c.numUI?`Valore da progetto: ${c.numUI}. Conferma o correggi.`:'';
+
   document.getElementById('detailNote').value=c.note||'';
   document.getElementById('autosaveHint').textContent='';
   updateNoteInfo(); renderPhotos(); go('detail');
-  if(!geoCoords)getGeo(true);
 }
 
 /* autosave: la foto scattata non si perde se l'app va in background */
@@ -604,6 +644,15 @@ async function saveCurrent(showHint=true){
   c.note=document.getElementById('detailNote').value;
   c.photos=photos;
   c.geo=geoCoords;
+  /* rilevazione in campo */
+  c.pte=segVal('segPte');
+  c.ptx=segVal('segPtx');
+  const sc=document.getElementById('fScavo').value;
+  c.scavo = sc===''?null:Number(sc);
+  c.adduzione=document.getElementById('fAdduzione').value;
+  const tu=document.getElementById('fTotUI').value;
+  c.totUI = tu===''?null:Number(tu);
+
   c.status=c.status==='Inviato'?'Inviato':'Bozza';
   c.lastModified=new Date().toISOString();
   c.user=currentUser?.fullName||''; c.matricola=currentUser?.matricola||'';
@@ -688,7 +737,7 @@ document.getElementById('cameraInput').addEventListener('change',async function(
 function getGeo(silent=false){
   return new Promise(res=>{
     const out=document.getElementById('detailGeo');
-    if(!navigator.geolocation){out.textContent='GPS non supportato';return res()}
+    if(!navigator.geolocation){out.textContent='Non disponibile';return res()}
     if(!silent)out.textContent='Rilevamento\u2026';
     navigator.geolocation.getCurrentPosition(
       p=>{ geoCoords={lat:p.coords.latitude,lng:p.coords.longitude,accuracy:Math.round(p.coords.accuracy)};
@@ -696,9 +745,9 @@ function getGeo(silent=false){
            if(!silent){toast(`Posizione acquisita (\u00B1${geoCoords.accuracy} m)`,'ok',2200);saveCurrent(false)}
            res() },
       err=>{ if(!silent){
-               const m=err.code===1?'Permesso GPS negato. Abilitalo nelle impostazioni del browser.'
-                      :err.code===3?'GPS in timeout. Riprova all\'aperto.':'GPS non disponibile';
-               out.textContent='Non rilevato'; toast(m,'err',5000);
+               const m=err.code===1?'Posizione non allegata: permesso negato. Puoi procedere comunque.'
+                      :err.code===3?'GPS in timeout. Puoi procedere senza posizione.':'GPS non disponibile. Puoi procedere.';
+               out.textContent='Non allegata'; toast(m,'info',4500);
              }
              res() },
       {enableHighAccuracy:true,timeout:12000,maximumAge:30000});
@@ -712,6 +761,8 @@ function updateNoteInfo(){
   document.getElementById('noteTime').textContent=n.value?new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'\u2014';
 }
 document.getElementById('detailNote').addEventListener('input',()=>{updateNoteInfo();scheduleSave()});
+['fScavo','fTotUI'].forEach(id=>document.getElementById(id).addEventListener('input',scheduleSave));
+document.getElementById('fAdduzione').addEventListener('change',scheduleSave);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&currentOlo)saveCurrent(false)});
 
 /* ══ Salva / Invia ══════════════════════════════════════════ */
@@ -727,10 +778,13 @@ async function submitCase(asDraft){
 
   if(!asDraft){
     const missing=[];
+    if(!segVal('segPte'))missing.push('PTE interno/facciata');
+    if(!segVal('segPtx'))missing.push('PTX arretrato');
+    if(document.getElementById('fScavo').value==='')missing.push('metri di scavo');
+    if(!document.getElementById('fAdduzione').value)missing.push('presenza adduzione');
+    if(document.getElementById('fTotUI').value==='')missing.push('totale UI');
     if(!photos.length)missing.push('almeno una foto');
-    if(!document.getElementById('detailNote').value.trim())missing.push('le note');
-    if(!geoCoords)missing.push('la posizione GPS');
-    if(missing.length){toast('Per inviare servono: '+missing.join(', '),'err',5000);return}
+    if(missing.length){toast('Mancano: '+missing.join(', '),'err',5500);return}
   }
 
   lockButtons(true);
@@ -761,11 +815,22 @@ async function submitCase(asDraft){
 async function exportZip(c){
   const base=`${c.user||'Operatore'}/${c.olo}`;
   const files=[{name:`${base}/metadata.json`,data:txt(JSON.stringify({
-    olo:c.olo, categoria:c.categoria||'',
-    indirizzo:[c.indirizzo,c.civico].filter(Boolean).join(' '),
-    comune:c.comune||'', provincia:c.provincia||'', regione:c.regione||'',
+    id_building:c.olo, codice_egon:c.egon||'',
+    indirizzo:c.indirizzo||'', civico:c.civico||'',
+    comune:c.comune||'', provincia:c.provincia||'',
+    regione:c.regione||'', subregione:c.subregione||'',
+    coord_progetto:{lat:c.lat,lng:c.lng},
+    rilevazione:{
+      pte_interno_building_o_facciata:c.pte||'',
+      ptx_arretrato:c.ptx||'',
+      scavo_necessario_m:c.scavo,
+      presenza_adduzione:c.adduzione||'',
+      totale_ui:c.totUI,
+      numero_ui_progetto:c.numUI||0
+    },
     operatore:c.user||'', matricola:c.matricola||'',
-    stato:'Inviato', gps:c.geo||null,
+    stato:'Inviato',
+    gps_operatore:c.geo||null,
     dataInvio:new Date().toISOString(),
     numFoto:(c.photos||[]).length, appVersion:APP_VER, device:navigator.userAgent
   },null,2))}];
@@ -788,7 +853,7 @@ async function exportZip(c){
 
   if(file && navigator.canShare?.({files:[file]}) && navigator.share){
     try{
-      await navigator.share({title:`OpenField \u2014 ${c.olo}`,text:`${c.categoria} \u2014 ${c.olo}\nInvia su Teams \u2192 canale Consegne`,files:[file]});
+      await navigator.share({title:`OpenField \u2014 ${c.olo}`,text:`${[c.indirizzo,c.civico].filter(Boolean).join(' ')} \u2014 ${c.comune}\nInvia su Teams \u2192 canale Consegne`,files:[file]});
       return;
     }catch(e){
       if(e.name==='AbortError')throw e;
@@ -814,10 +879,15 @@ function showConfirm(c,isDraft){
 
   const s=document.getElementById('confirmSummary');
   s.innerHTML='<p class="ch" style="margin-bottom:14px">Riepilogo</p>';
-  [['Codice OLO',c.olo,1],['Tipologia',c.categoria],
-   ['Indirizzo',[c.indirizzo,c.comune].filter(Boolean).join(', ')||'\u2014'],
+  [['ID Building',c.olo,1],
+   ['Indirizzo',[c.indirizzo,c.civico].filter(Boolean).join(' ')+(c.comune?', '+c.comune:'')||'\u2014'],
+   ['PTE interno/facciata',c.pte||'\u2014'],
+   ['PTX arretrato',c.ptx||'\u2014'],
+   ['Scavo',c.scavo!=null?c.scavo+' m':'\u2014'],
+   ['Adduzione',c.adduzione||'\u2014'],
+   ['Totale UI',c.totUI!=null?String(c.totUI):'\u2014'],
    ['Foto',String(c.photos?.length||0)],
-   ['GPS',c.geo?`${c.geo.lat.toFixed(5)}, ${c.geo.lng.toFixed(5)}`:'\u2014'],
+   ['GPS operatore',c.geo?`${c.geo.lat.toFixed(5)}, ${c.geo.lng.toFixed(5)}`:'facoltativo'],
    ['Operatore',c.user||'\u2014'],['Stato',c.status]]
   .forEach(([l,v,mono],i)=>{
     s.insertAdjacentHTML('beforeend',
@@ -882,97 +952,173 @@ async function refreshDrafts(){
 document.getElementById('homeSearch').addEventListener('input',function(){
   const q=this.value.trim();
   if(q.length<2)return;
-  currentCat='';
   document.getElementById('listTitle').textContent='Ricerca';
   document.getElementById('listBadge').innerHTML='';
   document.getElementById('listSearch').value=q;
   this.value=''; go('list');
 });
-document.getElementById('listSearch').addEventListener('input',renderList);
+let searchTimer=null;
+document.getElementById('listSearch').addEventListener('input',()=>{
+  clearTimeout(searchTimer); searchTimer=setTimeout(renderList,220);
+});
 
 /* ══ Sorgente casi ══════════════════════════════════════════ */
-async function reloadCasi(){
-  if(!confirm('Aggiorna la lista casi dal server?\n\nLe foto e note già salvate vengono mantenute.'))return;
-  busy(true,'Aggiornamento dati\u2026');
+/* mappa record casi.json → oggetto caso (schema Tracking AGF) */
+function mapRecord(c, prev={}){
+  return {
+    olo: c.o,
+    egon: c.e||'',
+    indirizzo: c.a||'', civico: c.n||'',
+    comune: c.m||'', provincia: c.p||'', regione: c.r||'',
+    subregione: c.s||'',
+    numUI: c.u||0,
+    lat: c.lat ?? null, lng: c.lng ?? null,
+    date: new Date().toLocaleDateString('it-IT'),
+    status: prev.status||'Bozza',
+    note: prev.note||'', photos: prev.photos||[], geo: prev.geo||null,
+    pte: prev.pte||'', ptx: prev.ptx||'',
+    scavo: prev.scavo ?? null, adduzione: prev.adduzione||'',
+    totUI: prev.totUI ?? null,
+    lastModified: prev.lastModified||new Date().toISOString(),
+    user: prev.user||'', matricola: prev.matricola||'',
+    sentAt: prev.sentAt||''
+  };
+}
+
+/* un caso è "toccato" se ha dati inseriti dal tecnico */
+function isTouched(c){
+  return !!(c.photos?.length || c.note || c.status==='Inviato' ||
+            c.pte || c.ptx || c.scavo!=null || c.adduzione || c.totUI!=null);
+}
+
+/* ══ Aggiornamento completo ═════════════════════════════════
+   Ordine obbligatorio: si scarica PRIMA il nuovo dato, si riscrive il DB,
+   e solo alla fine si cancellano le cache. Mai il contrario: se la rete
+   cade a metà, il tecnico resta con l'app funzionante e i dati vecchi. */
+
+let swReg=null;
+
+/* Promise che non resta mai appesa. */
+function withTimeout(promise, ms, fallback=null){
+  return Promise.race([promise, new Promise(r=>setTimeout(()=>r(fallback),ms))]);
+}
+
+async function fetchRemoteVersion(){
   try{
+    const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)return null;
+    return await r.json();
+  }catch(e){ return null }
+}
+
+async function purgeAllCaches(){
+  if(!('caches' in window))return;
+  try{
+    const keys=await caches.keys();
+    await Promise.all(keys.map(k=>caches.delete(k)));
+  }catch(e){ console.warn('purge cache fallita',e) }
+}
+
+/* Attiva il service worker in attesa. Risolve appena il nuovo prende
+   il controllo, o dopo il timeout: non si blocca mai. */
+async function activateWaitingSW(){
+  if(!swReg)return;
+  try{ await swReg.update() }catch(e){}
+  const waiting=swReg.waiting;
+  if(!waiting)return;
+  const took=new Promise(res=>{
+    let done=false;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(!done){done=true;res(true)}
+    },{once:true});
+  });
+  waiting.postMessage({type:'SKIP_WAITING'});
+  await withTimeout(took,4000,false);
+}
+
+async function hardRefresh(){
+  if(inFlight){toast('Attendi la fine dell\'invio in corso','info');return}
+
+  if(!navigator.onLine){
+    toast('Sei offline. L\'aggiornamento richiede connessione.','err',5000);
+    return;
+  }
+  if(!confirm('Aggiorna app e dati?\n\nLe rilevazioni gia\u0300 compilate vengono mantenute.\nL\'app si ricarica al termine.'))return;
+
+  busy(true,'Scaricamento dati\u2026');
+  try{
+    /* 1. Scarica il nuovo dataset PRIMA di toccare qualunque cosa. */
+    const r=await fetch('casi.json?v='+Date.now(),{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const remote=await r.json();
+    if(!Array.isArray(remote)||!remote.length)throw new Error('dataset vuoto o non valido');
+
+    /* 2. Salva le rilevazioni gia\u0300 compilate. */
+    busy(true,'Salvataggio rilevazioni\u2026');
     const existing=await dbGetAll('cases');
     const modified={};
-    for(const c of existing){
-      if(c.photos?.length||c.note||c.status==='Inviato'){
-        modified[c.olo]={photos:c.photos,note:c.note,geo:c.geo,status:c.status,
-          user:c.user,matricola:c.matricola,lastModified:c.lastModified,sentAt:c.sentAt};
-      }
-    }
+    for(const c of existing) if(isTouched(c)) modified[c.olo]=c;
+
+    /* 3. Riscrivi il DB. Da qui in poi il dato nuovo e\u0300 gia\u0300 in mano nostra. */
+    busy(true,'Aggiornamento civici\u2026');
     const t=db.transaction('cases','readwrite');
     t.objectStore('cases').clear();
-    await new Promise((res,rej)=>{t.oncomplete=res;t.onerror=rej});
+    await new Promise((res,rej)=>{t.oncomplete=res;t.onerror=()=>rej(t.error)});
 
-    const CAT_MAP={'B':'Blocco tecnico','S':'Sopralluogo','P':'Preventivo','C':'Consuntivo'};
-    let remote=null;
-    const r=await fetch('casi.json',{cache:'no-store'});
-    if(r.ok){const j=await r.json();if(Array.isArray(j))remote=j}
-    if(!remote?.length){busy(false);toast('Nessun dato trovato sul server','err');return}
-
-    let count=0;
+    let count=0, kept=0;
     for(const c of remote){
-      const olo=c.o||c.olo;
-      if(!olo)continue;
-      const prev=modified[olo]||{};
-      await dbPut('cases',{
-        olo, categoria:CAT_MAP[c.c]||c.categoria||'Blocco tecnico',
-        indirizzo:c.a||c.indirizzo||'', civico:c.n||c.civico||'',
-        comune:c.m||c.comune||'', provincia:c.p||c.provincia||'',
-        regione:c.r||c.regione||'', impresa:c.i||c.impresa||'',
-        gg_giac:c.g||0,
-        date:new Date().toLocaleDateString('it-IT'),
-        status:prev.status||'Bozza', note:prev.note||'', photos:prev.photos||[], geo:prev.geo||null,
-        lastModified:prev.lastModified||new Date().toISOString(),
-        user:prev.user||currentUser?.fullName||'', matricola:prev.matricola||currentUser?.matricola||'',
-        sentAt:prev.sentAt||''
-      });
+      if(!c.o)continue;
+      const prev=modified[c.o];
+      if(prev)kept++;
+      await dbPut('cases', mapRecord(c, prev||{}));
       count++;
     }
-    busy(false);
-    toast(`${count.toLocaleString()} casi aggiornati`,'ok',3000);
-    refreshHome();
+
+    /* 4. Le rilevazioni su civici spariti dal nuovo file non vanno perse. */
+    const remoteIds=new Set(remote.map(x=>x.o));
+    for(const olo in modified){
+      if(!remoteIds.has(olo)){ await dbPut('cases',modified[olo]); kept++ }
+    }
+
+    /* 5. Attiva prima il service worker nuovo: il suo activate cancella da se'
+       tutte le cache vecchie. Solo dopo si passa la scopa, cosi' non si butta
+       la shell che il nuovo SW ha appena installato. */
+    busy(true,'Installazione aggiornamento\u2026');
+    await withTimeout(activateWaitingSW(),5000);
+
+    busy(true,'Pulizia cache\u2026');
+    await purgeAllCaches();
+
+    busy(true,'Riavvio\u2026');
+    toast(`${count.toLocaleString('it-IT')} civici \u00B7 ${kept} rilevazioni mantenute`,'ok',2000);
+    setTimeout(()=>location.reload(),900);
+
   }catch(err){
     busy(false);
-    toast('Aggiornamento fallito: '+err.message,'err',6000);
+    toast('Aggiornamento fallito: '+err.message+'. I dati precedenti sono intatti.','err',7000);
   }
 }
 
+
 async function seedCases(){
   if((await dbGetAll('cases')).length)return;
-  const CAT_MAP={'B':'Blocco tecnico','S':'Sopralluogo','P':'Preventivo','C':'Consuntivo'};
   let remote=null;
   try{
-    toast('Caricamento casi\u2026','info',30000);
+    toast('Caricamento civici\u2026','info',30000);
     const r=await fetch('casi.json',{cache:'no-store'});
     if(r.ok){const j=await r.json();if(Array.isArray(j))remote=j}
   }catch(e){}
-  if(!remote?.length){toast('Nessun dato disponibile. Tocca + per creare un caso.','info',4000);return}
+  if(!remote?.length){toast('Nessun dato disponibile.','info',4000);return}
 
   const batch=500;
   for(let i=0;i<remote.length;i+=batch){
-    const chunk=remote.slice(i,i+batch);
-    for(const c of chunk){
-      const olo=c.o||c.olo;
-      if(!olo)continue;
-      await dbPut('cases',{
-        olo, categoria:CAT_MAP[c.c]||c.categoria||'Blocco tecnico',
-        indirizzo:c.a||c.indirizzo||'', civico:c.n||c.civico||'',
-        comune:c.m||c.comune||'', provincia:c.p||c.provincia||'',
-        regione:c.r||c.regione||'', impresa:c.i||c.impresa||'',
-        gg_giac:c.g||0,
-        date:new Date().toLocaleDateString('it-IT'),
-        status:'Bozza', note:'', photos:[], geo:null,
-        lastModified:new Date().toISOString(),
-        user:'', matricola:''
-      });
+    for(const c of remote.slice(i,i+batch)){
+      if(!c.o)continue;
+      await dbPut('cases', mapRecord(c));
     }
-    if(i%2000===0&&i>0)toast(`Caricamento: ${Math.min(i+batch,remote.length)}/${remote.length} casi\u2026`,'info',30000);
+    if(i%2000===0&&i>0)toast(`Caricamento: ${Math.min(i+batch,remote.length)}/${remote.length}\u2026`,'info',30000);
   }
-  toast(`${remote.length} casi caricati`,'ok',3000);
+  toast(`${remote.length.toLocaleString('it-IT')} civici caricati`,'ok',3000);
 }
 
 /* ══ Installazione ══════════════════════════════════════════ */
@@ -1006,16 +1152,40 @@ function closeBanner(){
 function registerSW(){
   if(!('serviceWorker' in navigator))return;
   navigator.serviceWorker.register('sw.js').then(reg=>{
+    swReg=reg;
+    /* Non ricaricare mai da soli: il tecnico potrebbe avere una rilevazione
+       aperta. Si segnala e basta; decide lui quando premere Aggiorna. */
+    if(reg.waiting)showUpdateBanner();
     reg.addEventListener('updatefound',()=>{
       const sw=reg.installing;
       sw?.addEventListener('statechange',()=>{
-        if(sw.state==='installed'&&navigator.serviceWorker.controller&&!inFlight){
-          toast('Nuova versione. Ricarico\u2026','info',1800);
-          setTimeout(()=>location.reload(),1800);
-        }
+        if(sw.state==='installed'&&navigator.serviceWorker.controller)showUpdateBanner();
       });
     });
   }).catch(()=>{});
+}
+
+function showUpdateBanner(){
+  if(document.getElementById('updBanner'))return;
+  const d=document.createElement('div');
+  d.id='updBanner';
+  d.style.cssText='position:fixed;left:12px;right:12px;bottom:86px;z-index:60;background:var(--tx);color:var(--bg);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.28)';
+  d.innerHTML='<div style="flex:1;min-width:0">'+
+    '<div style="font-size:13px;font-weight:600">Nuova versione disponibile</div>'+
+    '<div style="font-size:11px;opacity:.75;margin-top:2px">Tocca Aggiorna per installarla</div></div>'+
+    '<button id="updGo" style="background:var(--ac);color:#fff;border:none;border-radius:9px;padding:9px 16px;font-size:12px;font-weight:600">Aggiorna</button>'+
+    '<button id="updNo" style="background:none;border:none;color:inherit;opacity:.6;font-size:18px;padding:4px 6px">&times;</button>';
+  document.body.appendChild(d);
+  document.getElementById('updGo').addEventListener('click',()=>{d.remove();hardRefresh()});
+  document.getElementById('updNo').addEventListener('click',()=>d.remove());
+}
+
+/* Controllo silenzioso all'avvio: version.json non e' mai in cache,
+   quindi dice sempre la verita' su cosa c'e' sul server. */
+async function checkVersion(){
+  if(!navigator.onLine)return;
+  const v=await fetchRemoteVersion();
+  if(v?.app && v.app!==APP_VER)showUpdateBanner();
 }
 
 /* ══ Avvio ══════════════════════════════════════════════════ */
@@ -1037,6 +1207,7 @@ async function init(){
     await requestPersistence();
     await seedCases();
     go('home'); checkQuota();
+    setTimeout(checkVersion,2500);
   }else{
     go('login');
   }
