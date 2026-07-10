@@ -393,7 +393,7 @@ const INFO={
   ptx:['PTX arretrato','Indica SI se il PTX \u00E8 arretrato rispetto al civico.'],
   scavo:['Scavo necessario','Metri indicativi di scavo. Metti 1 se le tubazioni sono gi\u00E0 adiacenti alla PP e servono solo piccole opere (buco muro). Metti 0 se non serve scavo.'],
   adduzione:['Presenza adduzione','Seleziona il terminale di rete presente nelle vicinanze. Scegli Assente se non ce n\u2019\u00E8 nessuno.'],
-  totui:['Totale UI','Numero di unit\u00E0 immobiliari effettive che hai contato. Il valore precompilato viene dal progetto: confermalo o correggilo.'],
+  totui:['Totale UI','Numero di unit\u00E0 immobiliari effettive che hai contato sul posto. Il campo non \u00E8 precompilato: va compilato a mano.'],
   gps:['Allega posizione','Facoltativo. Serve solo ad attestare che il rilievo \u00E8 stato fatto in loco.'],
   foto:['Foto','Scatta almeno una foto. Servono a documentare PTE, PTX e lo stato del civico.'],
   maps:['Naviga con Maps','Apre Google Maps in navigazione verso le coordinate del civico.'],
@@ -693,7 +693,7 @@ async function renderList(){
       ${touched&&c.status!=='Inviato'?`<div class="progress" style="margin-bottom:8px"><div class="progress-fill" style="width:${pct}%;background:var(${pct>70?'--ac':pct>30?'--a':'--r'})"></div></div>`:''}
       <div style="display:flex;gap:14px;font-size:11px;color:var(--txm);align-items:center">
         ${c._d!=null&&isFinite(c._d)?`<span style="color:var(--act);font-weight:600">${fmtDist(c._d)}</span>`:''}
-        <span>${c.numUI||0} UI</span><span>${(c.photos?.length||0)} foto</span>${touched?`<span>${pct}%</span>`:''}
+        <span>${(c.photos?.length||0)} foto</span>${touched?`<span>${pct}%</span>`:''}
         <span style="margin-left:auto;font-size:15px">\u203A</span></div>`;
     row.addEventListener('click',()=>openDetail(c.olo));
     el.appendChild(row);
@@ -750,8 +750,8 @@ async function openDetail(olo){
   document.getElementById('fScavo').value = c.scavo ?? '';
   const sel=document.getElementById('fAdduzione');
   sel.innerHTML=ADDUZIONE.map(v=>`<option value="${v}"${v===(c.adduzione||'')?' selected':''}>${v||'\u2014 Seleziona \u2014'}</option>`).join('');
-  document.getElementById('fTotUI').value = c.totUI ?? (c.numUI ?? '');
-  document.getElementById('uiHint').textContent = c.numUI?`Valore da progetto: ${c.numUI}. Conferma o correggi.`:'';
+  document.getElementById('fTotUI').value = c.totUI ?? '';
+  document.getElementById('uiHint').textContent = 'Conta le UI sul posto e inserisci il valore.';
 
   document.getElementById('detailNote').value=c.note||'';
   document.getElementById('autosaveHint').textContent='';
