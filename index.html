@@ -779,7 +779,8 @@ async function exportZip(c){
   });
 
   const blob=makeZipBlob(files);
-  const name=`${c.olo}_${new Date().toISOString().slice(0,10)}.zip`;
+  const safeName=(c.user||'Operatore').replace(/\s+/g,'_');
+  const name=`${safeName}_${c.olo}_${new Date().toISOString().slice(0,10)}.zip`;
 
   /* Condivisione via share sheet → il tecnico tocca Teams → Consegne */
   let file=null;
