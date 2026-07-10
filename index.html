@@ -177,8 +177,15 @@ button{cursor:pointer}
     <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input class="input" style="padding-left:46px" placeholder="Comune, via, civico, ID building..." id="listSearch">
   </div>
-  <div style="display:flex;justify-content:space-between;padding:20px 24px 8px">
-    <span class="ch" id="listCount">0 risultati</span>
+  <div style="display:flex;align-items:center;gap:8px;padding:16px 24px 8px">
+    <span class="ch" id="listCount" style="flex:1;min-width:0">0 risultati</span>
+    <button id="btnDist" onclick="toggleDistance()"
+      style="display:flex;align-items:center;gap:5px;background:var(--sub);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font-size:11px;color:var(--tx2);flex-shrink:0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:12px;height:12px"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      <span id="btnDistLbl">Distanza</span>
+    </button>
+    <button type="button" onclick="openInfo('distanza')" aria-label="Informazioni"
+      style="width:17px;height:17px;border-radius:50%;border:1px solid var(--txm);background:none;color:var(--txm);font-size:11px;line-height:1;padding:0;flex-shrink:0">i</button>
   </div>
   <div style="padding:0 24px 90px;flex:1" id="listItems"></div>
 
@@ -199,14 +206,17 @@ button{cursor:pointer}
     </div>
     <p class="serif" style="font-size:17px;margin-bottom:4px" id="detailAddr"></p>
     <p style="font-size:12px;color:var(--txm);margin-bottom:14px" id="detailLoc"></p>
-    <button class="btn btn-accent" style="margin-bottom:10px" onclick="openMaps()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-      Vai &mdash; naviga con Maps
-    </button>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <button class="btn btn-accent" style="flex:1" onclick="openMaps()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        Vai &mdash; naviga con Maps
+      </button>
+      <button type="button" onclick="openInfo('maps')" aria-label="Informazioni" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--txm);background:none;color:var(--txm);font-size:12px;line-height:1;padding:0;flex-shrink:0">i</button>
+    </div>
     <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--sub);border-radius:12px">
       <svg viewBox="0 0 24 24" fill="none" stroke="var(--bt)" style="width:15px;height:15px;flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
       <div style="flex:1;min-width:0">
-        <div style="font-size:11px;color:var(--txm);margin-bottom:2px">La tua posizione &mdash; facoltativa</div>
+        <div style="font-size:11px;color:var(--txm);margin-bottom:2px;display:flex;align-items:center">La tua posizione &mdash; facoltativa<button type="button" onclick="openInfo('gps')" aria-label="Informazioni" style="width:17px;height:17px;border-radius:50%;border:1px solid var(--txm);background:none;color:var(--txm);font-size:11px;line-height:1;padding:0;margin-left:6px;flex-shrink:0">i</button></div>
         <span class="mono" style="font-size:11px" id="detailGeo">Non allegata</span>
       </div>
       <button style="font-size:11px;color:var(--bt);font-weight:600;background:none;border:none;padding:4px" onclick="getGeo()">Allega</button>
@@ -217,36 +227,36 @@ button{cursor:pointer}
   <div class="card" style="margin:0 24px;padding:18px 20px;display:flex;flex-direction:column;gap:18px">
 
     <div>
-      <label class="ch" style="display:block;margin-bottom:8px">PTE interno al building o facciata</label>
+      <label class="ch" style="display:flex;align-items:center;margin-bottom:8px">PTE interno al building o facciata<button type="button" onclick="openInfo('pte')" aria-label="Informazioni" style="width:17px;height:17px;border-radius:50%;border:1px solid var(--txm);background:none;color:var(--txm);font-size:11px;line-height:1;padding:0;margin-left:6px;flex-shrink:0">i</button></label>
       <div style="display:flex;gap:8px" id="segPte"></div>
     </div>
 
     <div>
-      <label class="ch" style="display:block;margin-bottom:8px">PTX arretrato</label>
+      <label class="ch" style="display:flex;align-items:center;margin-bottom:8px">PTX arretrato<button type="button" onclick="openInfo('ptx')" aria-label="Informazioni" style="width:17px;height:17px;border-radius:50%;border:1px solid var(--txm);background:none;color:var(--txm);font-size:11px;line-height:1;padding:0;margin-left:6px;flex-shrink:0">i</button></label>
       <div style="display:flex;gap:8px" id="segPtx"></div>
     </div>
 
     <div>
-      <label class="ch" style="display:block;margin-bottom:6px">Scavo necessario &mdash; metri</label>
+      <label class="ch" style="display:flex;align-items:center;margin-bottom:6px">Scavo necessario &mdash; metri<button type="button" onclick="openInfo('scavo')" aria-label="Informazioni" style="width:17px;height:17px;border-radius:50%;border:1px solid var(--txm);background:none;color:var(--txm);font-size:11px;line-height:1;padding:0;margin-left:6px;flex-shrink:0">i</button></label>
       <input class="input" id="fScavo" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
       <p style="font-size:11px;color:var(--txm);margin-top:5px;line-height:1.45">Indica <strong>1</strong> se, con PTX arretrato, le tubazioni sono adiacenti alla PP e servono solo piccole opere (buco muro, ecc.)</p>
     </div>
 
     <div>
-      <label class="ch" style="display:block;margin-bottom:6px">Presenza adduzione</label>
+      <label class="ch" style="display:flex;align-items:center;margin-bottom:6px">Presenza adduzione<button type="button" onclick="openInfo('adduzione')" aria-label="Informazioni" style="width:17px;height:17px;border-radius:50%;border:1px solid var(--txm);background:none;color:var(--txm);font-size:11px;line-height:1;padding:0;margin-left:6px;flex-shrink:0">i</button></label>
       <select class="input" id="fAdduzione" style="appearance:auto"></select>
       <p style="font-size:11px;color:var(--txm);margin-top:5px;line-height:1.45">Terminale di rete TIM / ED nelle vicinanze</p>
     </div>
 
     <div>
-      <label class="ch" style="display:block;margin-bottom:6px">Totale UI &mdash; effettive</label>
+      <label class="ch" style="display:flex;align-items:center;margin-bottom:6px">Totale UI &mdash; effettive<button type="button" onclick="openInfo('totui')" aria-label="Informazioni" style="width:17px;height:17px;border-radius:50%;border:1px solid var(--txm);background:none;color:var(--txm);font-size:11px;line-height:1;padding:0;margin-left:6px;flex-shrink:0">i</button></label>
       <input class="input" id="fTotUI" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
       <p style="font-size:11px;color:var(--txm);margin-top:5px" id="uiHint"></p>
     </div>
   </div>
 
   <div style="display:flex;justify-content:space-between;padding:20px 24px 10px">
-    <span class="ch">Foto</span>
+    <span class="ch" style="display:flex;align-items:center">Foto<button type="button" onclick="openInfo('foto')" aria-label="Informazioni" style="width:17px;height:17px;border-radius:50%;border:1px solid var(--txm);background:none;color:var(--txm);font-size:11px;line-height:1;padding:0;margin-left:6px;flex-shrink:0">i</button></span>
     <span class="mono" style="font-size:11px;color:var(--txm)"><span id="photoCount">0</span> foto</span>
   </div>
   <div class="photo-grid" id="photoGrid"></div>
@@ -259,6 +269,10 @@ button{cursor:pointer}
   </div>
 
   <div style="padding:20px 24px 0;display:flex;flex-direction:column;gap:8px">
+    <div style="display:flex;align-items:center;justify-content:flex-end;gap:14px;font-size:11px;color:var(--txm);margin-bottom:2px">
+      <span style="display:flex;align-items:center">Invio<button type="button" onclick="openInfo('invia')" aria-label="Informazioni" style="width:17px;height:17px;border-radius:50%;border:1px solid var(--txm);background:none;color:var(--txm);font-size:11px;line-height:1;padding:0;margin-left:6px;flex-shrink:0">i</button></span>
+      <span style="display:flex;align-items:center">Bozza<button type="button" onclick="openInfo('bozza')" aria-label="Informazioni" style="width:17px;height:17px;border-radius:50%;border:1px solid var(--txm);background:none;color:var(--txm);font-size:11px;line-height:1;padding:0;margin-left:6px;flex-shrink:0">i</button></span>
+    </div>
     <button class="btn btn-accent" id="btnSend" onclick="submitCase(false)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
       Invia completo
@@ -272,12 +286,28 @@ button{cursor:pointer}
 
 <!-- DRAFTS -->
 <div class="screen" id="s-drafts">
-  <div style="display:flex;align-items:center;gap:12px;padding:18px 24px 0">
-    <button class="back-btn" onclick="go('home')" aria-label="Indietro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:20px;height:20px"><path d="m15 18-6-6 6-6"/></svg></button>
-    <span class="serif" style="font-size:20px">Le mie bozze</span>
+  <div style="padding:28px 24px 0">
+    <p class="serif" style="font-size:28px;line-height:1.2">Le mie attivit&agrave;</p>
+    <p style="font-size:13px;color:var(--txm);margin-top:4px">Riepilogo del lavoro svolto</p>
   </div>
-  <p style="font-size:13px;color:var(--tx2);padding:8px 24px 0;line-height:1.5">Inizia sul campo, completa in ufficio</p>
-  <div style="padding:18px 24px 0;flex:1;display:flex;flex-direction:column;gap:10px" id="draftList"></div>
+
+  <div style="display:flex;align-items:center;margin:22px 24px 0;padding:16px 0;border-top:.5px solid var(--bd);border-bottom:.5px solid var(--bd)">
+    <div class="stat"><div class="serif" style="font-size:22px" id="actToday">0</div><div style="font-size:11px;color:var(--txm);margin-top:3px">Oggi</div></div>
+    <div class="stat"><div class="serif" style="font-size:22px" id="actWeek">0</div><div style="font-size:11px;color:var(--txm);margin-top:3px">Settimana</div></div>
+    <div class="stat"><div class="serif" style="font-size:22px" id="actTotal">0</div><div style="font-size:11px;color:var(--txm);margin-top:3px">Totale</div></div>
+  </div>
+
+  <div style="display:flex;gap:8px;padding:18px 24px 0" id="actTabs"></div>
+
+  <div style="padding:16px 24px 0;flex:1;display:flex;flex-direction:column;gap:10px" id="draftList"></div>
+
+  <div style="padding:18px 24px calc(18px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px">
+    <button class="btn btn-accent" style="flex:1" onclick="shareSummary()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+      Condividi riepilogo
+    </button>
+    <button type="button" onclick="openInfo('riepilogo')" aria-label="Informazioni" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--txm);background:none;color:var(--txm);font-size:12px;line-height:1;padding:0;flex-shrink:0">i</button>
+  </div>
 </div>
 
 <!-- CONFIRM -->
@@ -297,6 +327,16 @@ button{cursor:pointer}
 </div>
 
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="infoSheet" style="display:none;position:fixed;inset:0;z-index:80">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.45)" onclick="closeInfo()"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:20px 20px 0 0;padding:22px 24px calc(24px + env(safe-area-inset-bottom))">
+    <div style="width:36px;height:4px;border-radius:2px;background:var(--bd);margin:0 auto 18px"></div>
+    <p class="serif" style="font-size:18px;margin-bottom:8px" id="infoTitle"></p>
+    <p style="font-size:14px;color:var(--tx2);line-height:1.6" id="infoBody"></p>
+    <button class="btn btn-sub" style="margin-top:20px" onclick="closeInfo()">Ho capito</button>
+  </div>
+</div>
+
 <div id="overlay"><div class="box"><div class="spinner"></div><p id="overlayText" style="font-size:14px;color:var(--tx2)">Attendere&hellip;</p></div></div>
 
 
@@ -315,15 +355,15 @@ button{cursor:pointer}
 
 <nav class="nav" id="mainNav">
   <button data-s="home" class="ac" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</button>
-  <button data-s="list" onclick="go('list')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Attivit&agrave;</button>
-  <button data-s="drafts" onclick="go('drafts')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Bozze</button>
+  <button data-s="list" onclick="go('list')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Civici</button>
+  <button data-s="drafts" onclick="go('drafts')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Attivit&agrave;</button>
   <button data-s="profile" onclick="showProfile()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profilo</button>
 </nav>
 
 <script>
 'use strict';
 
-const DB_NAME='openfield', DB_VER=2, APP_VER='3.0.1';
+const DB_NAME='openfield', DB_VER=2, APP_VER='3.1.0';
 const MAX_DIM=1600, JPEG_Q=0.82, MAX_PHOTOS=30;
 
 let db=null, dbOk=false;
@@ -343,6 +383,46 @@ const MODULES=[
 const ADDUZIONE=['','TIM interrata','TIM aerea','ED interrata','ED aerea','Privata interrata','Assente'];
 
 const DEMO=[];
+
+/* ══ Testi dei pulsanti informativi ═════════════════════════ */
+const INFO={
+  distanza:['Ordina per distanza','Usa il GPS per riordinare i civici dal pi\u00F9 vicino. La posizione resta sul telefono: non viene salvata n\u00E9 inviata a nessuno.'],
+  pte:['PTE interno o facciata','Indica SI se il punto di terminazione \u00E8 dentro l\u2019edificio o sulla facciata. NO se assente.'],
+  ptx:['PTX arretrato','Indica SI se il PTX \u00E8 arretrato rispetto al civico.'],
+  scavo:['Scavo necessario','Metri indicativi di scavo. Metti 1 se le tubazioni sono gi\u00E0 adiacenti alla PP e servono solo piccole opere (buco muro). Metti 0 se non serve scavo.'],
+  adduzione:['Presenza adduzione','Seleziona il terminale di rete presente nelle vicinanze. Scegli Assente se non ce n\u2019\u00E8 nessuno.'],
+  totui:['Totale UI','Numero di unit\u00E0 immobiliari effettive che hai contato. Il valore precompilato viene dal progetto: confermalo o correggilo.'],
+  gps:['Allega posizione','Facoltativo. Serve solo ad attestare che il rilievo \u00E8 stato fatto in loco.'],
+  foto:['Foto','Scatta almeno una foto. Servono a documentare PTE, PTX e lo stato del civico.'],
+  maps:['Naviga con Maps','Apre Google Maps in navigazione verso le coordinate del civico.'],
+  invia:['Invia completo','Genera il pacchetto e lo condivide su Teams, canale Consegne. Servono i 5 campi e almeno una foto.'],
+  bozza:['Salva bozza','Salva sul telefono. Riprendi quando vuoi dalla sezione Attivit\u00E0.'],
+  riepilogo:['Condividi riepilogo','Genera un testo con il lavoro svolto e apre la condivisione: mail, Teams, WhatsApp.'],
+};
+
+function openInfo(key){
+  const t=INFO[key]; if(!t)return;
+  document.getElementById('infoTitle').textContent=t[0];
+  document.getElementById('infoBody').textContent=t[1];
+  document.getElementById('infoSheet').style.display='block';
+}
+function closeInfo(){document.getElementById('infoSheet').style.display='none'}
+
+
+/* ══ Geolocalizzazione per ordinamento ══════════════════════
+   In memoria, mai persistita, mai inviata. Solo criterio di ordinamento. */
+let myPos=null, sortByDistance=false;
+
+function haversine(la1,lo1,la2,lo2){
+  const R=6371000, r=Math.PI/180;
+  const dLa=(la2-la1)*r, dLo=(lo2-lo1)*r;
+  const a=Math.sin(dLa/2)**2 + Math.cos(la1*r)*Math.cos(la2*r)*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+function fmtDist(m){
+  if(m==null)return '';
+  return m<1000 ? `${Math.round(m)} m` : `${(m/1000).toFixed(1).replace('.',',')} km`;
+}
 
 /* ══ ZIP writer (metodo store, zero dipendenze) ═════════════ */
 const CRC_TABLE=(()=>{const t=new Uint32Array(256);
@@ -468,7 +548,7 @@ function go(screen){
     b.classList.toggle('ac',b.dataset.s===screen||(b.dataset.s==='list'&&screen==='detail')));
   if(screen==='home')refreshHome();
   if(screen==='drafts')refreshDrafts();
-  if(screen==='list')renderList();
+  if(screen==='list'){paintDistBtn();renderList()}
 }
 
 /* ══ Utente ═════════════════════════════════════════════════ */
@@ -549,19 +629,47 @@ function progressOf(c){
   const done=[c.pte,c.ptx,c.scavo!=null,c.adduzione,c.totUI!=null].filter(Boolean).length;
   return Math.round((done/5)*100);
 }
-function isComplete(c){
-  return !!(c.pte && c.ptx && c.scavo!=null && c.adduzione && c.totUI!=null);
+/* Chiede la posizione una volta sola. Rifiuto o errore: torna off, mai bloccante. */
+async function toggleDistance(){
+  if(sortByDistance){ sortByDistance=false; myPos=null; paintDistBtn(); return renderList() }
+  if(!navigator.geolocation){toast('GPS non disponibile su questo dispositivo','info');return}
+  busy(true,'Rilevamento posizione\u2026');
+  const pos=await new Promise(res=>navigator.geolocation.getCurrentPosition(
+    p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),
+    ()=>res(null),
+    {enableHighAccuracy:true,timeout:12000,maximumAge:60000}));
+  busy(false);
+  if(!pos){ toast('Posizione non disponibile. Ordinamento invariato.','info',4000); return }
+  myPos=pos; sortByDistance=true; paintDistBtn(); renderList();
 }
+function paintDistBtn(){
+  const b=document.getElementById('btnDist');
+  b.style.background   = sortByDistance?'var(--acl)':'var(--sub)';
+  b.style.borderColor  = sortByDistance?'var(--ac)':'var(--bd)';
+  b.style.color        = sortByDistance?'var(--act)':'var(--tx2)';
+  document.getElementById('btnDistLbl').textContent = sortByDistance?'Aggiorna':'Distanza';
+}
+
 async function renderList(){
   const cases=await dbGetAll('cases');
   let list=cases;
   const q=document.getElementById('listSearch').value.trim().toLowerCase();
   if(q)list=list.filter(c=>[c.olo,c.egon,c.indirizzo,c.civico,c.comune,c.provincia].some(v=>String(v||'').toLowerCase().includes(q)));
-  else list=list.slice(0,300);   /* senza ricerca mostra solo i primi 300: 11.910 righe ucciderebbero il DOM */
-  list.sort((a,b)=>String(b.lastModified||'').localeCompare(String(a.lastModified||'')));
+
+  if(sortByDistance&&myPos){
+    for(const c of list) c._d=(c.lat!=null&&c.lng!=null)?haversine(myPos.lat,myPos.lng,c.lat,c.lng):Infinity;
+    list.sort((a,b)=>a._d-b._d);
+    if(!q)list=list.slice(0,300);
+    if(list.length&&list[0]._d>50000)toast('Nessun civico entro 50 km dalla tua posizione','info',4000);
+  }else{
+    if(!q)list=list.slice(0,300);   /* 11.910 righe nel DOM = crash */
+    list.sort((a,b)=>String(b.lastModified||'').localeCompare(String(a.lastModified||'')));
+  }
   document.getElementById('listCount').textContent = q
     ? `${list.length} ${list.length===1?'risultato':'risultati'}`
-    : `${cases.length.toLocaleString('it-IT')} civici \u00B7 primi 300 \u2014 usa la ricerca`;
+    : sortByDistance
+      ? `${cases.length.toLocaleString('it-IT')} civici \u00B7 i 300 pi\u00F9 vicini`
+      : `${cases.length.toLocaleString('it-IT')} civici \u00B7 primi 300 \u2014 usa la ricerca`;
 
   const el=document.getElementById('listItems'); el.innerHTML='';
   if(!list.length){
@@ -582,7 +690,8 @@ async function renderList(){
       <div class="mono" style="font-size:10px;color:var(--txm);margin-bottom:8px">${esc(c.olo)}</div>
       ${touched&&c.status!=='Inviato'?`<div class="progress" style="margin-bottom:8px"><div class="progress-fill" style="width:${pct}%;background:var(${pct>70?'--ac':pct>30?'--a':'--r'})"></div></div>`:''}
       <div style="display:flex;gap:14px;font-size:11px;color:var(--txm);align-items:center">
-        <span>${c.numUI||0} UI</span><span>${(c.photos?.length||0)} foto</span><span>${pct}%</span>
+        ${c._d!=null&&isFinite(c._d)?`<span style="color:var(--act);font-weight:600">${fmtDist(c._d)}</span>`:''}
+        <span>${c.numUI||0} UI</span><span>${(c.photos?.length||0)} foto</span>${touched?`<span>${pct}%</span>`:''}
         <span style="margin-left:auto;font-size:15px">\u203A</span></div>`;
     row.addEventListener('click',()=>openDetail(c.olo));
     el.appendChild(row);
@@ -770,6 +879,7 @@ function updateNoteInfo(){
   document.getElementById('noteChars').textContent=`${n.value.length} car.`;
   document.getElementById('noteTime').textContent=n.value?new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'\u2014';
 }
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeInfo()});
 document.getElementById('detailNote').addEventListener('input',()=>{updateNoteInfo();scheduleSave()});
 ['fScavo','fTotUI'].forEach(id=>document.getElementById(id).addEventListener('input',scheduleSave));
 document.getElementById('fAdduzione').addEventListener('change',scheduleSave);
@@ -930,32 +1040,115 @@ function showConfirm(c,isDraft){
 }
 
 /* ══ Bozze ══════════════════════════════════════════════════ */
+let actFilter='progress';   /* 'progress' | 'sent' */
+
+const startOfDay=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+const startOfWeek=()=>{const d=startOfDay();d.setDate(d.getDate()-((d.getDay()+6)%7));return d};
+const touchedAt=c=>new Date(c.sentAt||c.lastModified||0);
+
+async function myCases(){
+  return (await dbGetAll('cases')).filter(isTouched);
+}
+
 async function refreshDrafts(){
-  const drafts=(await dbGetAll('cases')).filter(c=>c.status==='Bozza')
-    .sort((a,b)=>String(b.lastModified||'').localeCompare(String(a.lastModified||'')));
+  const mine=await myCases();
+  const d0=startOfDay(), w0=startOfWeek();
+  document.getElementById('actToday').textContent=mine.filter(c=>touchedAt(c)>=d0).length;
+  document.getElementById('actWeek').textContent =mine.filter(c=>touchedAt(c)>=w0).length;
+  document.getElementById('actTotal').textContent=mine.length;
+
+  const prog=mine.filter(c=>c.status!=='Inviato');
+  const sent=mine.filter(c=>c.status==='Inviato');
+
+  const tabs=document.getElementById('actTabs'); tabs.innerHTML='';
+  [['progress','In corso',prog.length],['sent','Inviati',sent.length]].forEach(([id,lbl,n])=>{
+    const on=actFilter===id;
+    const b=document.createElement('button');
+    b.style.cssText=`flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:600;border:1px solid ${on?'var(--ac)':'var(--bd)'};background:${on?'var(--acl)':'transparent'};color:${on?'var(--act)':'var(--txm)'}`;
+    b.textContent=`${lbl} ${n}`;
+    b.addEventListener('click',()=>{actFilter=id;refreshDrafts()});
+    tabs.appendChild(b);
+  });
+
+  const list=(actFilter==='sent'?sent:prog)
+    .sort((a,b)=>touchedAt(b)-touchedAt(a));
+
   const el=document.getElementById('draftList'); el.innerHTML='';
-  if(!drafts.length){
-    el.innerHTML='<p style="color:var(--txm);font-size:13px;padding:40px 0;text-align:center;line-height:1.6">Nessuna bozza.<br>Inizia una nuova attivit\u00E0 dalla home.</p>';
+  if(!list.length){
+    el.innerHTML=`<p style="color:var(--txm);font-size:13px;padding:40px 0;text-align:center;line-height:1.6">${
+      actFilter==='sent'?'Nessun civico inviato.':'Nessuna rilevazione in corso.<br>Aprine una dalla scheda Civici.'}</p>`;
     return;
   }
-  drafts.forEach(c=>{
-    const pct=progressOf(c), miss=[];
-    if(!c.photos?.length)miss.push('foto');
-    if(!c.note)miss.push('note');
-    if(!c.geo)miss.push('GPS');
-    const col=pct>70?'--ac':pct>30?'--a':'--r';
+
+  list.forEach(c=>{
+    const pct=progressOf(c), isSent=c.status==='Inviato';
+    const col=isSent?'--gt':pct>70?'--ac':pct>30?'--a':'--r';
+    const addr=[c.indirizzo,c.civico].filter(Boolean).join(' ');
     const b=document.createElement('div');
     b.className='card'; b.style.cssText='padding:18px 20px';
-    b.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span class="mono" style="font-size:13px;font-weight:600;color:var(--tx)">${esc(c.olo)}</span>${pill('Bozza','--al','--at')}</div>
-      <div style="font-size:13px;color:var(--tx2);margin-bottom:12px">${esc(c.indirizzo||'\u2014')}${c.comune?', '+esc(c.comune):''}</div>
-      <div class="progress" style="margin-bottom:8px"><div class="progress-fill" style="width:${pct}%;background:var(${col})"></div></div>
+    b.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:13px;font-weight:600;color:var(--tx)">${esc(addr||'\u2014')}</span>
+        ${pill(isSent?'Inviato':'In corso',isSent?'--gl':'--al',isSent?'--gt':'--at')}</div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:10px">${esc(c.comune||'')}${c.provincia?' \u00B7 '+esc(c.provincia):''}</div>
+      ${isSent?'':`<div class="progress" style="margin-bottom:8px"><div class="progress-fill" style="width:${pct}%;background:var(${col})"></div></div>`}
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--txm)">
-        <span>${miss.length?'Mancano: '+miss.join(', '):'Pronta per l\'invio'}</span>
-        <span style="font-weight:600;color:var(${col})">${pct}%</span></div>`;
+        <span>${(c.photos?.length||0)} foto \u00B7 ${fmtWhen(touchedAt(c))}</span>
+        <span style="font-weight:600;color:var(${col})">${isSent?'100%':pct+'%'}</span></div>`;
     b.addEventListener('click',()=>openDetail(c.olo));
     el.appendChild(b);
   });
+}
+
+function fmtWhen(d){
+  const now=new Date(), diff=(startOfDay()-d)/86400000;
+  if(d>=startOfDay())return d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  if(diff<1)return 'ieri';
+  return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
+}
+
+/* ══ Riepilogo condivisibile ════════════════════════════════ */
+function summaryLine(c){
+  const addr=[c.indirizzo,c.civico].filter(Boolean).join(' ');
+  const head=`\u2022 ${addr}${c.comune?', '+c.comune:''}`;
+  if(c.status!=='Inviato')return `${head}\n  ${progressOf(c)}% completo`;
+  const bits=[
+    c.pte?`PTE ${c.pte}`:null,
+    c.ptx?`PTX ${c.ptx}`:null,
+    c.scavo!=null?`scavo ${c.scavo}m`:null,
+    c.adduzione||null,
+    c.totUI!=null?`UI ${c.totUI}`:null,
+    `${c.photos?.length||0} foto`
+  ].filter(Boolean);
+  return `${head}\n  ${bits.join(' \u00B7 ')}`;
+}
+
+async function buildSummary(){
+  const mine=await myCases();
+  const sent=mine.filter(c=>c.status==='Inviato').sort((a,b)=>touchedAt(b)-touchedAt(a));
+  const prog=mine.filter(c=>c.status!=='Inviato').sort((a,b)=>touchedAt(b)-touchedAt(a));
+
+  const L=[`OpenField \u2014 ${currentUser?.fullName||'Operatore'}`,
+           `Riepilogo ${new Date().toLocaleDateString('it-IT')}`,''];
+  if(sent.length){ L.push(`INVIATI (${sent.length})`); sent.forEach(c=>L.push(summaryLine(c))); L.push('') }
+  if(prog.length){ L.push(`IN CORSO (${prog.length})`); prog.forEach(c=>L.push(summaryLine(c))); L.push('') }
+  if(!mine.length)L.push('Nessuna rilevazione registrata.');
+  else L.push(`Totale rilevati: ${mine.length}`);
+  return L.join('\n');
+}
+
+async function shareSummary(){
+  const text=await buildSummary();
+  const title=`OpenField \u2014 riepilogo ${new Date().toLocaleDateString('it-IT')}`;
+  if(navigator.share){
+    try{ await navigator.share({title,text}); return }
+    catch(e){ if(e.name==='AbortError')return }
+  }
+  try{
+    await navigator.clipboard.writeText(text);
+    toast('Riepilogo copiato negli appunti','ok',3000);
+  }catch(e){
+    toast('Condivisione non disponibile su questo dispositivo','err',4000);
+  }
 }
 
 /* ══ Ricerca ════════════════════════════════════════════════ */
