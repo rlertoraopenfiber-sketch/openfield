@@ -160,8 +160,8 @@ button{cursor:pointer}
   <p class="ch" style="padding:0 24px;margin-bottom:14px">Tipologia attivit&agrave;</p>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 24px" id="catGrid"></div>
   <div style="display:flex;align-items:center;margin:22px 24px 0;padding:16px 0;border-top:.5px solid var(--bd);border-bottom:.5px solid var(--bd)">
-    <div class="stat"><div class="serif" style="font-size:22px" id="statTotal">0</div><div style="font-size:11px;color:var(--txm);margin-top:3px">Casi</div></div>
-    <div class="stat"><div class="serif" style="font-size:22px" id="statDraft">0</div><div style="font-size:11px;color:var(--txm);margin-top:3px">Bozze</div></div>
+    <div class="stat"><div class="serif" style="font-size:22px" id="statTotal">0</div><div style="font-size:11px;color:var(--txm);margin-top:3px">Da rilevare</div></div>
+    <div class="stat"><div class="serif" style="font-size:22px" id="statDraft">0</div><div style="font-size:11px;color:var(--txm);margin-top:3px">In corso</div></div>
     <div class="stat"><div class="serif" style="font-size:22px" id="statSent">0</div><div style="font-size:11px;color:var(--txm);margin-top:3px">Inviati</div></div>
   </div>
 </div>
@@ -323,20 +323,20 @@ button{cursor:pointer}
 <script>
 'use strict';
 
-const DB_NAME='openfield', DB_VER=2, APP_VER='3.0.0';
+const DB_NAME='openfield', DB_VER=2, APP_VER='3.0.1';
 const MAX_DIM=1600, JPEG_Q=0.82, MAX_PHOTOS=30;
 
 let db=null, dbOk=false;
-let currentUser=null, currentOlo=null;
+let currentUser=null, currentOlo=null, currentTarget=null;
 let photos=[], geoCoords=null, deferredPrompt=null;
 let inFlight=false, saveTimer=null;
 
 /* 4 moduli home: solo AGF attivo, gli altri in arrivo */
 const MODULES=[
   {id:'agf', name:'Verifica civici AGF', icon:'\u{1F4CD}', sub:'Sopralluogo civici da rilevare', bgVar:'--bl',  fgVar:'--bt',  active:true},
-  {id:'m2',  name:'Modulo 2',            icon:'\u{1F4CB}', sub:'Coming soon',                    bgVar:'--sub', fgVar:'--txm', active:false},
-  {id:'m3',  name:'Modulo 3',            icon:'\u{1F4C4}', sub:'Coming soon',                    bgVar:'--sub', fgVar:'--txm', active:false},
-  {id:'m4',  name:'Modulo 4',            icon:'\u2705',    sub:'Coming soon',                    bgVar:'--sub', fgVar:'--txm', active:false},
+  {id:'m2',  name:'Modulo 2',            icon:'\u{1F4CB}', sub:'',                               bgVar:'--sub', fgVar:'--txm', active:false},
+  {id:'m3',  name:'Modulo 3',            icon:'\u{1F4C4}', sub:'',                               bgVar:'--sub', fgVar:'--txm', active:false},
+  {id:'m4',  name:'Modulo 4',            icon:'\u2705',    sub:'',                               bgVar:'--sub', fgVar:'--txm', active:false},
 ];
 
 /* Valori ammessi \u2014 fonte: Foglio2 del Tracking AGF */
@@ -513,9 +513,12 @@ async function refreshHome(){
   const days=['domenica','luned\u00EC','marted\u00EC','mercoled\u00EC','gioved\u00EC','venerd\u00EC','sabato'];
   const months=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
   document.getElementById('dateStr').textContent=`${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  document.getElementById('statTotal').textContent=cases.length;
-  document.getElementById('statDraft').textContent=cases.filter(c=>c.status==='Bozza').length;
-  document.getElementById('statSent').textContent=cases.filter(c=>c.status==='Inviato').length;
+  const sent=cases.filter(c=>c.status==='Inviato').length;
+  const started=cases.filter(c=>c.status!=='Inviato'&&isTouched(c)).length;
+  const todo=cases.length-sent-started;
+  document.getElementById('statTotal').textContent=todo.toLocaleString('it-IT');
+  document.getElementById('statDraft').textContent=started.toLocaleString('it-IT');
+  document.getElementById('statSent').textContent=sent.toLocaleString('it-IT');
 
   const grid=document.getElementById('catGrid'); grid.innerHTML='';
   MODULES.forEach(mod=>{
@@ -566,16 +569,18 @@ async function renderList(){
     return;
   }
   list.forEach(c=>{
-    const st=c.status==='Inviato'?['--gl','--gt']:['--al','--at'];
+    const touched=isTouched(c);
+    const label=c.status==='Inviato'?'Inviato':touched?'In corso':'Da rilevare';
+    const st=c.status==='Inviato'?['--gl','--gt']:touched?['--al','--at']:['--sub','--txm'];
     const pct=progressOf(c);
     const row=document.createElement('div');
     row.className='row-item';
     const addr=[c.indirizzo,c.civico].filter(Boolean).join(' ');
     row.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:13px;font-weight:600;color:var(--tx)">${esc(addr||'\u2014')}</span>${pill(c.status,st[0],st[1])}</div>
+        <span style="font-size:13px;font-weight:600;color:var(--tx)">${esc(addr||'\u2014')}</span>${pill(label,st[0],st[1])}</div>
       <div style="font-size:12px;color:var(--tx2);margin-bottom:4px">${esc(c.comune||'')}${c.provincia?' \u00B7 '+esc(c.provincia):''}</div>
       <div class="mono" style="font-size:10px;color:var(--txm);margin-bottom:8px">${esc(c.olo)}</div>
-      ${c.status==='Bozza'?`<div class="progress" style="margin-bottom:8px"><div class="progress-fill" style="width:${pct}%;background:var(${pct>70?'--ac':pct>30?'--a':'--r'})"></div></div>`:''}
+      ${touched&&c.status!=='Inviato'?`<div class="progress" style="margin-bottom:8px"><div class="progress-fill" style="width:${pct}%;background:var(${pct>70?'--ac':pct>30?'--a':'--r'})"></div></div>`:''}
       <div style="display:flex;gap:14px;font-size:11px;color:var(--txm);align-items:center">
         <span>${c.numUI||0} UI</span><span>${(c.photos?.length||0)} foto</span><span>${pct}%</span>
         <span style="margin-left:auto;font-size:15px">\u203A</span></div>`;
@@ -600,11 +605,15 @@ function renderSeg(elId,value){
 }
 function segVal(elId){return document.getElementById(elId).dataset.value||''}
 
-/* ══ Navigazione Maps ═══════════════════════════════════════ */
-async function openMaps(){
-  const c=await dbGet('cases',currentOlo);
-  if(!c?.lat||!c?.lng){toast('Coordinate non disponibili per questo civico','err');return}
-  window.open(`https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}&travelmode=driving`,'_blank');
+/* ══ Navigazione Maps ═══════════════════════════════════════
+   Sincrona di proposito: su iOS un await prima di window.open perde il
+   gesto utente e Safari blocca l'apertura come fosse un popup. */
+function openMaps(){
+  if(!currentTarget){toast('Coordinate non disponibili per questo civico','err');return}
+  const {lat,lng}=currentTarget;
+  const url=`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+  const w=window.open(url,'_blank');
+  if(!w)location.href=url;   /* PWA standalone: nessuna finestra, si naviga */
 }
 
 /* ══ Dettaglio ══════════════════════════════════════════════ */
@@ -612,6 +621,7 @@ async function openDetail(olo){
   const c=await dbGet('cases',olo);
   if(!c){toast('Civico non trovato','err');return}
   currentOlo=olo;
+  currentTarget=(c.lat!=null&&c.lng!=null)?{lat:c.lat,lng:c.lng}:null;
   photos=Array.isArray(c.photos)?c.photos.slice():[];
   geoCoords=c.geo||null;
 
