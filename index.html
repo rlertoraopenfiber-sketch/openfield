@@ -179,6 +179,11 @@ button{cursor:pointer}
   </div>
   <div style="display:flex;align-items:center;gap:8px;padding:16px 24px 8px">
     <span class="ch" id="listCount" style="flex:1;min-width:0">0 risultati</span>
+    <button id="btnSent" onclick="toggleSent()"
+      style="display:flex;align-items:center;gap:5px;background:var(--sub);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font-size:11px;color:var(--tx2);flex-shrink:0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:12px;height:12px"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span id="btnSentLbl">Inviati</span>
+    </button>
     <button id="btnDist" onclick="toggleDistance()"
       style="display:flex;align-items:center;gap:5px;background:var(--sub);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font-size:11px;color:var(--tx2);flex-shrink:0">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:12px;height:12px"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
@@ -414,6 +419,8 @@ function closeInfo(){document.getElementById('infoSheet').style.display='none'}
 /* ══ Geolocalizzazione per ordinamento ══════════════════════
    In memoria, mai persistita, mai inviata. Solo criterio di ordinamento. */
 let myPos=null, sortByDistance=false;
+/* Inviati nascosti di default: restano leggibili dal tab Attivita'. */
+let hideSent=(()=>{try{return localStorage.getItem('of_hideSent')!=='0'}catch(e){return true}})();
 
 function haversine(la1,lo1,la2,lo2){
   const R=6371000, r=Math.PI/180;
@@ -550,7 +557,7 @@ function go(screen){
     b.classList.toggle('ac',b.dataset.s===screen||(b.dataset.s==='list'&&screen==='detail')));
   if(screen==='home')refreshHome();
   if(screen==='drafts')refreshDrafts();
-  if(screen==='list'){paintDistBtn();renderList()}
+  if(screen==='list'){paintDistBtn();paintSentBtn();renderList()}
 }
 
 /* ══ Utente ═════════════════════════════════════════════════ */
@@ -644,6 +651,18 @@ async function toggleDistance(){
   if(!pos){ toast('Posizione non disponibile. Ordinamento invariato.','info',4000); return }
   myPos=pos; sortByDistance=true; paintDistBtn(); renderList();
 }
+function toggleSent(){
+  hideSent=!hideSent;
+  try{localStorage.setItem('of_hideSent',hideSent?'1':'0')}catch(e){}
+  paintSentBtn(); renderList();
+}
+function paintSentBtn(){
+  const b=document.getElementById('btnSent');
+  b.style.background  = hideSent?'var(--sub)':'var(--acl)';
+  b.style.borderColor = hideSent?'var(--bd)':'var(--ac)';
+  b.style.color       = hideSent?'var(--tx2)':'var(--act)';
+  document.getElementById('btnSentLbl').textContent = hideSent?'Inviati':'Tutti';
+}
 function paintDistBtn(){
   const b=document.getElementById('btnDist');
   b.style.background   = sortByDistance?'var(--acl)':'var(--sub)';
@@ -654,7 +673,8 @@ function paintDistBtn(){
 
 async function renderList(){
   const cases=await dbGetAll('cases');
-  let list=cases;
+  let list=hideSent?cases.filter(c=>c.status!=='Inviato'):cases;
+  const universe=list.length;
   const q=document.getElementById('listSearch').value.trim().toLowerCase();
   if(q)list=list.filter(c=>[c.olo,c.egon,c.indirizzo,c.civico,c.comune,c.provincia].some(v=>String(v||'').toLowerCase().includes(q)));
 
@@ -670,12 +690,12 @@ async function renderList(){
   document.getElementById('listCount').textContent = q
     ? `${list.length} ${list.length===1?'risultato':'risultati'}`
     : sortByDistance
-      ? `${cases.length.toLocaleString('it-IT')} civici \u00B7 i 300 pi\u00F9 vicini`
-      : `${cases.length.toLocaleString('it-IT')} civici \u00B7 primi 300 \u2014 usa la ricerca`;
+      ? `${universe.toLocaleString('it-IT')} civici \u00B7 i 300 pi\u00F9 vicini`
+      : `${universe.toLocaleString('it-IT')} civici \u00B7 primi 300 \u2014 usa la ricerca`;
 
   const el=document.getElementById('listItems'); el.innerHTML='';
   if(!list.length){
-    el.innerHTML='<p style="color:var(--txm);font-size:13px;padding:32px 0;text-align:center;line-height:1.6">Nessun civico trovato.<br>Prova con comune, via o ID building.</p>';
+    el.innerHTML=`<p style="color:var(--txm);font-size:13px;padding:32px 0;text-align:center;line-height:1.6">Nessun civico trovato.<br>${hideSent?'Gli inviati sono nascosti: tocca <b>Inviati</b> per mostrarli.':'Prova con comune, via o ID building.'}</p>`;
     return;
   }
   list.forEach(c=>{
