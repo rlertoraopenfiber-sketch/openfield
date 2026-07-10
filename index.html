@@ -301,7 +301,9 @@ button{cursor:pointer}
 
   <div style="padding:16px 24px 0;flex:1;display:flex;flex-direction:column;gap:10px" id="draftList"></div>
 
-  <div style="padding:18px 24px calc(18px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px">
+  <div style="padding:8px 24px 0" id="actResetWrap"></div>
+
+  <div style="padding:14px 24px calc(18px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px">
     <button class="btn btn-accent" style="flex:1" onclick="shareSummary()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
       Condividi riepilogo
@@ -363,7 +365,7 @@ button{cursor:pointer}
 <script>
 'use strict';
 
-const DB_NAME='openfield', DB_VER=2, APP_VER='3.1.0';
+const DB_NAME='openfield', DB_VER=2, APP_VER='3.1.1';
 const MAX_DIM=1600, JPEG_Q=0.82, MAX_PHOTOS=30;
 
 let db=null, dbOk=false;
@@ -1070,6 +1072,10 @@ async function refreshDrafts(){
     tabs.appendChild(b);
   });
 
+  document.getElementById('actResetWrap').innerHTML = mine.length
+    ? `<button class="btn btn-ghost" style="color:var(--rt)" onclick="resetAll()">Azzera tutte le rilevazioni (${mine.length})</button>`
+    : '';
+
   const list=(actFilter==='sent'?sent:prog)
     .sort((a,b)=>touchedAt(b)-touchedAt(a));
 
@@ -1091,9 +1097,17 @@ async function refreshDrafts(){
         ${pill(isSent?'Inviato':'In corso',isSent?'--gl':'--al',isSent?'--gt':'--at')}</div>
       <div style="font-size:12px;color:var(--tx2);margin-bottom:10px">${esc(c.comune||'')}${c.provincia?' \u00B7 '+esc(c.provincia):''}</div>
       ${isSent?'':`<div class="progress" style="margin-bottom:8px"><div class="progress-fill" style="width:${pct}%;background:var(${col})"></div></div>`}
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--txm)">
+      <div style="display:flex;align-items:center;gap:10px;font-size:11px;color:var(--txm)">
         <span>${(c.photos?.length||0)} foto \u00B7 ${fmtWhen(touchedAt(c))}</span>
-        <span style="font-weight:600;color:var(${col})">${isSent?'100%':pct+'%'}</span></div>`;
+        <span style="margin-left:auto;font-weight:600;color:var(${col})">${isSent?'100%':pct+'%'}</span>
+        <button class="js-del" aria-label="Azzera rilevazione"
+          style="background:none;border:none;padding:4px;color:var(--txm);display:flex">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:15px;height:15px"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button></div>`;
+    b.querySelector('.js-del').addEventListener('click',e=>{
+      e.stopPropagation();
+      resetCase(c.olo,addr+(c.comune?', '+c.comune:''));
+    });
     b.addEventListener('click',()=>openDetail(c.olo));
     el.appendChild(b);
   });
@@ -1104,6 +1118,43 @@ function fmtWhen(d){
   if(d>=startOfDay())return d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
   if(diff<1)return 'ieri';
   return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
+}
+
+/* ══ Azzeramento rilevazioni ════════════════════════════════
+   Il civico NON viene cancellato: torna semplicemente "Da rilevare",
+   altrimenti sparirebbe dal catalogo fino al prossimo Aggiorna dati. */
+function blankFields(c){
+  c.pte=''; c.ptx=''; c.scavo=null; c.adduzione=''; c.totUI=null;
+  c.photos=[]; c.note=''; c.geo=null;
+  c.status='Bozza'; c.sentAt='';
+  c.lastModified=new Date().toISOString();
+  return c;
+}
+
+async function resetCase(olo,addr){
+  if(!confirm(`Azzerare la rilevazione di\n${addr}?\n\nFoto, note e campi compilati vengono persi.\nIl civico resta in elenco.`))return;
+  const c=await dbGet('cases',olo);
+  if(!c)return;
+  await dbPut('cases',blankFields(c));
+  if(currentOlo===olo){photos=[];geoCoords=null}
+  toast('Rilevazione azzerata','ok',2200);
+  refreshDrafts();
+}
+
+async function resetAll(){
+  const mine=await myCases();
+  if(!mine.length){toast('Nessuna rilevazione da azzerare','info');return}
+  if(!confirm(`Azzerare TUTTE le ${mine.length} rilevazioni?\n\nFoto, note e campi compilati vengono persi.\nI civici restano in elenco.\n\nOperazione non annullabile.`))return;
+  busy(true,'Azzeramento\u2026');
+  try{
+    for(const c of mine) await dbPut('cases',blankFields(c));
+    photos=[]; geoCoords=null;
+    busy(false);
+    toast(`${mine.length} rilevazioni azzerate`,'ok',3000);
+    refreshDrafts();
+  }catch(err){
+    busy(false); toast('Azzeramento fallito: '+err.message,'err',6000);
+  }
 }
 
 /* ══ Riepilogo condivisibile ════════════════════════════════ */
