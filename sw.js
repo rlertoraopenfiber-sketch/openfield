@@ -1,7 +1,7 @@
 /* OpenField Service Worker — v3.0.0
    REGOLA: bumpare VERSION a ogni modifica di index.html, sw.js o manifest.json.
    Cambiare VERSION cambia il nome cache → activate cancella tutte le vecchie. */
-const VERSION = 'v3.3.0';
+const VERSION = 'v3.3.1';
 const CACHE = 'openfield-' + VERSION;
 const SHELL = ['./', './index.html', './manifest.json'];
 
