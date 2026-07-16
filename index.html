@@ -71,6 +71,7 @@ button{cursor:pointer}
 .photo-thumb .geo-dot{position:absolute;bottom:3px;right:3px;width:15px;height:15px;border-radius:50%;background:var(--gl);display:flex;align-items:center;justify-content:center}
 .photo-thumb .geo-dot svg{width:9px;height:9px;color:var(--gt);stroke-width:3}
 .photo-thumb .del{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.62);color:#fff;border:none;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0}
+.photo-thumb .src-tag{position:absolute;top:2px;left:2px;padding:1px 5px;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.4px;line-height:1.5;background:var(--al);color:var(--at)}
 .photo-add{border:1.5px dashed var(--bds);background:transparent}
 .back-btn{background:none;border:none;color:var(--tx2);display:flex;padding:6px;margin:-6px}
 .row-item{padding:16px 0;border-top:.5px solid var(--bd)}
@@ -262,10 +263,11 @@ button{cursor:pointer}
 
   <div style="display:flex;justify-content:space-between;padding:20px 24px 10px">
     <span class="ch" style="display:flex;align-items:center">Foto<button type="button" onclick="openInfo('foto')" aria-label="Informazioni" style="width:17px;height:17px;border-radius:50%;border:1px solid var(--txm);background:none;color:var(--txm);font-size:11px;line-height:1;padding:0;margin-left:6px;flex-shrink:0">i</button></span>
-    <span class="mono" style="font-size:11px;color:var(--txm)"><span id="photoCount">0</span> foto</span>
+    <span class="mono" style="font-size:11px;color:var(--txm)" id="photoCount">0 foto</span>
   </div>
   <div class="photo-grid" id="photoGrid"></div>
   <input type="file" accept="image/*" capture="environment" id="cameraInput" style="display:none">
+  <input type="file" accept="image/*" multiple id="galleryInput" style="display:none">
 
   <div style="padding:20px 24px 0"><span class="ch">Note</span></div>
   <div style="padding:10px 24px 0">
@@ -280,7 +282,7 @@ button{cursor:pointer}
     </div>
     <button class="btn btn-accent" id="btnSend" onclick="submitCase(false)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
-      Invia completo
+      Certifica UI
     </button>
     <button class="btn btn-sub" id="btnDraft" onclick="submitCase(true)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/></svg>
@@ -370,7 +372,7 @@ button{cursor:pointer}
 <script>
 'use strict';
 
-const DB_NAME='openfield', DB_VER=2, APP_VER='3.2.0';
+const DB_NAME='openfield', DB_VER=2, APP_VER='3.3.0';
 const MAX_DIM=1600, JPEG_Q=0.82, MAX_PHOTOS=30;
 
 let db=null, dbOk=false;
@@ -400,9 +402,9 @@ const INFO={
   adduzione:['Presenza adduzione','Seleziona il terminale di rete presente nelle vicinanze. Scegli Assente se non ce n\u2019\u00E8 nessuno.'],
   totui:['Totale UI','Numero di unit\u00E0 immobiliari effettive che hai contato sul posto. Il campo non \u00E8 precompilato: va compilato a mano.'],
   gps:['Allega posizione','Facoltativo. Serve solo ad attestare che il rilievo \u00E8 stato fatto in loco.'],
-  foto:['Foto','Scatta almeno una foto. Servono a documentare PTE, PTX e lo stato del civico.'],
+  foto:['Foto','Scatta almeno una foto. Servono a documentare PTE, PTX e lo stato del civico. Le foto prese dalla galleria del telefono vengono marchiate con una G e restano riconoscibili nel pacchetto.'],
   maps:['Naviga con Maps','Apre Google Maps in navigazione verso le coordinate del civico.'],
-  invia:['Invia completo','Genera il pacchetto e lo condivide su Teams, canale Consegne. Servono i 5 campi e almeno una foto.'],
+  invia:['Certifica UI','Genera il pacchetto e lo condivide su Teams, canale Consegne. Servono i 5 campi e almeno una foto.'],
   bozza:['Salva bozza','Salva sul telefono. Riprendi quando vuoi dalla sezione Attivit\u00E0.'],
   riepilogo:['Condividi riepilogo','Genera un testo con il lavoro svolto e apre la condivisione: mail, Teams, WhatsApp.'],
 };
@@ -808,26 +810,45 @@ async function saveCurrent(showHint=true){
 }
 function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveCurrent(),600)}
 
+/* Origine foto: 'cam' = scattata in loco, 'gal' = presa dalla galleria.
+   Le foto salvate prima della 3.3.0 non hanno il campo: valgono 'cam'. */
+const isGal=p=>p.src==='gal';
+
 function renderPhotos(){
   const g=document.getElementById('photoGrid'); g.innerHTML='';
   photos.forEach((p,i)=>{
     const d=document.createElement('div');
     d.className='photo-thumb';
     d.innerHTML=`<img src="${p.data}" alt="Foto ${i+1}" loading="lazy">
+      ${isGal(p)?'<span class="src-tag">G</span>':''}
       ${p.geo?'<div class="geo-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20,6 9,17 4,12"/></svg></div>':''}
       <button class="del" aria-label="Elimina foto">\u00D7</button>`;
     d.querySelector('.del').addEventListener('click',ev=>{ev.stopPropagation();removePhoto(i)});
     g.appendChild(d);
   });
-  const add=document.createElement('div');
-  add.className='photo-thumb photo-add';
-  add.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="var(--txm)" style="width:20px;height:20px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
-  add.addEventListener('click',()=>{
-    if(photos.length>=MAX_PHOTOS){toast(`Massimo ${MAX_PHOTOS} foto per caso`,'err');return}
-    document.getElementById('cameraInput').click();
-  });
-  g.appendChild(add);
-  document.getElementById('photoCount').textContent=photos.length;
+
+  const mkAdd=(svg,label,onTap)=>{
+    const a=document.createElement('div');
+    a.className='photo-thumb photo-add';
+    a.setAttribute('role','button');
+    a.setAttribute('aria-label',label);
+    a.innerHTML=svg;
+    a.addEventListener('click',onTap);
+    g.appendChild(a);
+  };
+  mkAdd('<svg viewBox="0 0 24 24" fill="none" stroke="var(--txm)" style="width:20px;height:20px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
+    'Scatta foto',()=>pickPhotos('cameraInput'));
+  mkAdd('<svg viewBox="0 0 24 24" fill="none" stroke="var(--txm)" style="width:20px;height:20px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.6"/><polyline points="21,15 16,10 5,21"/></svg>',
+    'Aggiungi dalla galleria',()=>pickPhotos('galleryInput'));
+
+  const nGal=photos.filter(isGal).length;
+  document.getElementById('photoCount').textContent=
+    `${photos.length} foto` + (nGal?` \u00B7 ${nGal} da galleria`:'');
+}
+
+function pickPhotos(inputId){
+  if(photos.length>=MAX_PHOTOS){toast(`Massimo ${MAX_PHOTOS} foto per caso`,'err');return}
+  document.getElementById(inputId).click();
 }
 async function removePhoto(i){
   photos.splice(i,1); renderPhotos();
@@ -842,7 +863,23 @@ function legacyImg(file){return new Promise((res,rej)=>{
   img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('Immagine non leggibile'))};
   img.src=url;
 })}
-async function compressImage(file){
+/* Marchio "G" bruciato nell'immagine: sopravvive a estrazione, copia e inoltro.
+   Solo primitive canvas 2D di base (arc/fillText): funzionano su Android e iOS. */
+function stampGal(ctx,w,h){
+  const r=Math.max(15,Math.round(Math.min(w,h)*0.062));
+  const cx=w-r-Math.round(r*0.55), cy=h-r-Math.round(r*0.55);
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,0,0,.60)'; ctx.fill();
+  ctx.lineWidth=Math.max(2,Math.round(r*0.13));
+  ctx.strokeStyle='rgba(255,255,255,.95)'; ctx.stroke();
+  ctx.fillStyle='#FFFFFF';
+  ctx.font='bold '+Math.round(r*1.24)+'px -apple-system,"Segoe UI",Roboto,Arial,sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('G',cx,cy+Math.round(r*0.06));
+  ctx.restore();
+}
+async function compressImage(file,gal=false){
   let src;
   try{ src=await createImageBitmap(file,{imageOrientation:'from-image'}) }
   catch(e){ src=await legacyImg(file) }
@@ -851,27 +888,58 @@ async function compressImage(file){
   const s=Math.min(1,MAX_DIM/Math.max(w,h));
   w=Math.max(1,Math.round(w*s)); h=Math.max(1,Math.round(h*s));
   const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
-  cv.getContext('2d').drawImage(src,0,0,w,h);
+  const ctx=cv.getContext('2d');
+  ctx.drawImage(src,0,0,w,h);
   if(src.close)src.close();
+  if(gal)stampGal(ctx,w,h);
   const out=cv.toDataURL('image/jpeg',JPEG_Q);
   cv.width=cv.height=0;
   if(!out.startsWith('data:image/jpeg'))throw new Error('Compressione non riuscita');
   return out;
 }
-document.getElementById('cameraInput').addEventListener('change',async function(){
-  const file=this.files?.[0]; this.value='';
-  if(!file)return;
+
+async function addPhotos(fileList,src){
+  let list=Array.from(fileList||[]).filter(f=>f && f.size>0);
+  if(!list.length)return;
+  const room=MAX_PHOTOS-photos.length;
+  if(room<=0){toast(`Massimo ${MAX_PHOTOS} foto per caso`,'err');return}
+  let truncated=false;
+  if(list.length>room){ list=list.slice(0,room); truncated=true }
+
+  const gal=(src==='gal');
+  let ok=0, ko=0;
   busy(true,'Elaborazione foto\u2026');
   try{
-    const data=await compressImage(file);
-    if(!geoCoords)await getGeo(true);
-    photos.push({data,timestamp:new Date().toISOString(),geo:geoCoords?{...geoCoords}:null});
+    /* GPS solo per gli scatti in loco: allegare la posizione di adesso a una
+       foto presa dalla galleria significherebbe scrivere un luogo falso. */
+    if(!gal && !geoCoords)await getGeo(true);
+    for(let i=0;i<list.length;i++){
+      busy(true,list.length>1?`Elaborazione foto ${i+1}/${list.length}\u2026`:'Elaborazione foto\u2026');
+      try{
+        const data=await compressImage(list[i],gal);
+        photos.push({data,timestamp:new Date().toISOString(),
+                     geo:(!gal&&geoCoords)?{...geoCoords}:null,src});
+        ok++;
+      }catch(err){ ko++ }
+    }
     renderPhotos();
-    await saveCurrent(false);
-    toast('Foto salvata','ok',1500);
-    checkQuota();
-  }catch(err){ toast('Foto non acquisita: '+err.message,'err',5000) }
-  finally{ busy(false) }
+    if(ok)await saveCurrent(false);
+  }finally{ busy(false) }
+
+  if(ok&&!ko)toast(ok===1?'Foto salvata':`${ok} foto salvate`,'ok',1600);
+  else if(ok&&ko)toast(`${ok} salvate, ${ko} non leggibili`,'info',4000);
+  else toast('Nessuna foto acquisita','err',4000);
+  if(truncated)toast(`Limite di ${MAX_PHOTOS} foto: le eccedenti sono state ignorate`,'err',5000);
+  if(ok)checkQuota();
+}
+
+document.getElementById('cameraInput').addEventListener('change',async function(){
+  const f=this.files; this.value='';
+  await addPhotos(f,'cam');
+});
+document.getElementById('galleryInput').addEventListener('change',async function(){
+  const f=this.files; this.value='';
+  await addPhotos(f,'gal');
 });
 
 /* ══ GPS ════════════════════════════════════════════════════ */
@@ -956,6 +1024,14 @@ async function submitCase(asDraft){
 
 async function exportZip(c){
   const base=`${c.user||'Operatore'}/${c.olo}`;
+  const ph=c.photos||[];
+  /* Indice foto: il suffisso _GALLERIA nel nome resta la marcatura primaria,
+     leggibile dal desktop senza alcuna modifica. */
+  const idx=ph.map((p,i)=>({
+    file:`IMG_${String(i+1).padStart(3,'0')}${isGal(p)?'_GALLERIA':''}.jpg`,
+    origine:isGal(p)?'galleria':'scatto'
+  }));
+  const nGal=idx.filter(x=>x.origine==='galleria').length;
   const files=[{name:`${base}/metadata.json`,data:txt(JSON.stringify({
     id_building:c.olo, codice_egon:c.egon||'',
     indirizzo:c.indirizzo||'', civico:c.civico||'',
@@ -974,15 +1050,18 @@ async function exportZip(c){
     stato:'Inviato',
     gps_operatore:c.geo||null,
     dataInvio:new Date().toISOString(),
-    numFoto:(c.photos||[]).length, appVersion:APP_VER, device:navigator.userAgent
+    numFoto:ph.length, numFotoScatto:ph.length-nGal, numFotoGalleria:nGal,
+    foto:idx, appVersion:APP_VER, device:navigator.userAgent
   },null,2))}];
 
   if(c.note)files.push({name:`${base}/note.txt`,data:txt(c.note)});
 
-  (c.photos||[]).forEach((p,i)=>{
-    const n=String(i+1).padStart(3,'0');
-    files.push({name:`${base}/IMG_${n}.jpg`,data:b64ToBytes(p.data.split(',')[1])});
-    files.push({name:`${base}/IMG_${n}.json`,data:txt(JSON.stringify({timestamp:p.timestamp||'',gps:p.geo||null},null,2))});
+  ph.forEach((p,i)=>{
+    const fn=idx[i].file;
+    files.push({name:`${base}/${fn}`,data:b64ToBytes(p.data.split(',')[1])});
+    files.push({name:`${base}/${fn.replace(/\.jpg$/,'.json')}`,
+      data:txt(JSON.stringify({timestamp:p.timestamp||'',gps:p.geo||null,
+                               origine:idx[i].origine},null,2))});
   });
 
   const blob=makeZipBlob(files);
@@ -1028,7 +1107,8 @@ function showConfirm(c,isDraft){
    ['Scavo',c.scavo!=null?c.scavo+' m':'\u2014'],
    ['Adduzione',c.adduzione||'\u2014'],
    ['Totale UI',c.totUI!=null?String(c.totUI):'\u2014'],
-   ['Foto',String(c.photos?.length||0)],
+   ['Foto',(()=>{const p=c.photos||[],g=p.filter(isGal).length;
+                 return g?`${p.length} (${g} da galleria)`:String(p.length)})()],
    ['GPS operatore',c.geo?`${c.geo.lat.toFixed(5)}, ${c.geo.lng.toFixed(5)}`:'facoltativo'],
    ['Operatore',c.user||'\u2014'],['Stato',c.status]]
   .forEach(([l,v,mono],i)=>{
@@ -1046,6 +1126,7 @@ function showConfirm(c,isDraft){
       <div class="tree-line" style="padding-left:36px;font-size:11px;color:var(--txm)">metadata.json</div>
       ${c.note?'<div class="tree-line" style="padding-left:36px;font-size:11px;color:var(--txm)">note.txt</div>':''}
       <div class="tree-line" style="padding-left:36px;font-size:11px;color:var(--txm)">IMG_001 \u2013 ${String(c.photos?.length||0).padStart(3,'0')}.jpg</div>
+      ${(c.photos||[]).some(isGal)?'<div class="tree-line" style="padding-left:36px;font-size:11px;color:var(--at)">le foto da galleria hanno il suffisso _GALLERIA</div>':''}
     </div>`;
 
   document.getElementById('confirmSync').innerHTML=
